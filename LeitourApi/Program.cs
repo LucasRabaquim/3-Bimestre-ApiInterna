@@ -1,6 +1,9 @@
 //using LeitourApi.Models;
 using LeitourApi.Models;
 using LeitourApi.Settings;
+using MySql.Data;
+
+using MySql.Data.MySqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -9,11 +12,13 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 var key = Encoding.ASCII.GetBytes(AuthSettings.Secret);
-builder.Services.AddAuthentication(options => {
+builder.Services.AddAuthentication(options =>
+{
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options => {
+}).AddJwtBearer(options =>
+{
     options.RequireHttpsMetadata = false;
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
@@ -25,9 +30,10 @@ builder.Services.AddAuthentication(options => {
     };
 });
 
+
 builder.Services.AddDbContext<LeitourContext>(
-                options => options.
-                UseSqlServer("Server=DESKTOP-35REKEB;TrustServerCertificate=True;Database=dbLeitour;User Id=root;Password=12345678"));
+    options => options.UseMySQL("Server=localhost;Database=dbLeitour;User Id=root;Password=12345678")
+);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

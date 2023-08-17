@@ -5,6 +5,7 @@ using System.Text.Json;
 using System;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace LeitourApi.Services;
 
