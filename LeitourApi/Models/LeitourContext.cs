@@ -11,7 +11,18 @@ namespace LeitourApi.Models
         {
         }
         public DbSet<User> Users { get; set; }
-
+        public DbSet<FollowingList> FollowingLists { get; set; }
         public DbSet<Post> Posts { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>()
+                .HasMany<FollowingList>()
+                .WithOne();
+
+            modelBuilder.Entity<User>()
+                .HasMany<Post>()
+                .WithOne();
+        }
     }
 }

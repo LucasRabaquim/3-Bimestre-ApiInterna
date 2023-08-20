@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations;
+
 namespace LeitourApi.Models;
 
 [Table("tbUser")]
@@ -26,12 +26,8 @@ public partial class User
 
     public decimal Theme { get; set; }
 
-    public string RoleUser { get; set; } = null!;
+    public int RoleUser { get; set; }
 
     public bool? ActiveUser { get; set; }
-
-   // [InverseProperty("UserId")]
-   // public ICollection<Post>? Posts { get; set; } = new List<Post>();
-
+    //  public ICollection<FollowingList>? FollowingLists {get; set;}
 }
-   

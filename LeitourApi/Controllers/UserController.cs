@@ -127,52 +127,68 @@ namespace LeitourApi.Controllers
             if (user == null)
                 return NotFound();
             
-            var newFollowing = await _context.Users.Where(user => user.Email == email)
+            var followingEmail = await _context.Users.Where(user => user.Email == email)
                     .FirstOrDefaultAsync();
 
-            if (newFollowing == null)
-                return NotFound();
+            if (followingEmail == null)
+                return NotFound($"user with {email} does not exists");
 
-            _context.FollowingLists.Add(new FollowingList(user.UserId));
-            await _context.SaveChangesAsync();
-
-            var followingList = await _context.FollowingLists.Where(list => list.UserId == user.UserId)
-                    .FirstOrDefaultAsync();
-
-            if(followingList == null)
-                return NotFound();
-
-            _context.FollowingUsers.Add(new FollowingUser(followingList.FollowingListId,newFollowing.UserId) );
+            _context.FollowingLists.Add(new FollowingList(user.UserId,email));
             await _context.SaveChangesAsync();
 
             return Ok($"You are now following {email}");
+        }
+
+        [HttpPost("unfollow/{email}")]
+        public async Task<IActionResult> UnfollowUser([FromHeader] string token,string email)
+        {
+            int id = TokenService.DecodeToken(token);
+            if (_context.Users == null)
+                return NotFound();
+
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+                return NotFound();
+            
+            var followingEmail = await _context.Users.Where(user => user.Email == email)
+                    .FirstOrDefaultAsync();
+
+            if (followingEmail == null)
+                return NotFound($"user with {email} does not exists");
+
+
+            var following = await _context.FollowingLists.Where(following => (id == following.UserId) && (email == following.FollowingEmail))
+                    .FirstOrDefaultAsync();
+            
+            if(following == null)
+                return NotFound($"You not following {email}");
+            _context.FollowingLists.Remove(following);
+            await _context.SaveChangesAsync();
+
+            return Ok($"You are not following {email} anymore");
         }
 
 
         [HttpGet("followingList/{email}")]
         public async Task<ActionResult<IEnumerable<User>>> FollowingUser(string email)
         {
-            var user = await _context.Users.Where(user => user.Email == email)
+            var x = await _context.Users.Where(user => user.Email == email)
                     .FirstOrDefaultAsync();
 
-            if (user == null)
+            if (x == null)
                 return NotFound();
 
-            var followingList = await _context.FollowingLists.Where(list => list.UserId == user.UserId)
-                .FirstOrDefaultAsync();
+            var followingUsers = _context.FollowingLists.Where(list => list.UserId == x.UserId).Select(x => x.FollowingEmail).ToArray();
 
-            if(followingList == null)
-                return NotFound($"{user.NameUser} is following no one");
+            if(followingUsers == null)
+                return NotFound($"{x.NameUser} is following no one");
 
-            try{
-                var followingUser = await _context.FollowingUsers.Where(flUser => flUser.FollowingListId == followingList.FollowingListId)
-                    .ToListAsync();
-               
-                return users;
-            }
-            catch{
-                return NotFound($"{user.NameUser} is following no one");
-            }
+            List<User> list = new(){};
+            foreach(string i in followingUsers)
+                list.Add(await _context.Users.Where(user => user.Email == i)
+                    .FirstOrDefaultAsync());
+            
+            return list;
         }
         private bool UserExists(int id)
         {

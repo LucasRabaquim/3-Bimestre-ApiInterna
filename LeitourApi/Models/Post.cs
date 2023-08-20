@@ -11,7 +11,6 @@ public partial class Post
     [Key]
     public int PostId { get; set; }
 
-    [ForeignKey("userId")]
     [Column("userId")]
     public int UserId { get; set; }
 
