@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LeitourApi.Models;
 using LeitourApi.Services;
+using Org.BouncyCastle.Bcpg;
+using Azure.Messaging;
 
 namespace LeitourApi.Controllers
 {
@@ -15,18 +17,13 @@ namespace LeitourApi.Controllers
     public class UserController : ControllerBase
     {
         private readonly LeitourContext _context;
-
         public UserController(LeitourContext context) => _context = context;
 
-
-
-        // GET: api/User
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-          if (_context.Users == null)
-              return NotFound();
-          
+            if (_context.Users == null)
+                return NotFound();
             return await _context.Users.ToListAsync();
         }
 
@@ -34,8 +31,8 @@ namespace LeitourApi.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<dynamic>> Authenticate([FromBody] User loggingUser)
         {
-            var registeredUser = _context.Users.Where(user => user.Email == loggingUser.Email)
-                    .FirstOrDefault();
+            var registeredUser = await _context.Users.Where(user => user.Email == loggingUser.Email)
+                    .FirstOrDefaultAsync();
 
             if (registeredUser == null)
                 return NotFound("User does not exist");
@@ -44,11 +41,9 @@ namespace LeitourApi.Controllers
                 return NoContent();
 
             var token = TokenService.GenerateToken(registeredUser);
-            return new { user = registeredUser, token = token };
+            return new { user = registeredUser,token };
         }
 
-
-        // GET: api/User/marco@gmail.com
         [HttpGet("{email}")]
         public async Task<ActionResult<User>> GetUser(string email)
         {
@@ -56,8 +51,8 @@ namespace LeitourApi.Controllers
             if (_context.Users == null)
               return NotFound();
           
-            var user = _context.Users.Where(user => user.Email == email)
-                    .FirstOrDefault();
+            var user = await _context.Users.Where(user => user.Email == email)
+                    .FirstOrDefaultAsync();
 
             if (user == null)
                 return NotFound();
@@ -87,7 +82,7 @@ namespace LeitourApi.Controllers
                     throw;
             }
 
-            return NoContent();
+            return Ok($"{user.NameUser} Has been alterated");
         }
 
         [HttpPost("register")]
@@ -101,7 +96,7 @@ namespace LeitourApi.Controllers
 
             var token = TokenService.GenerateToken(user);
 
-            return new { id = user.UserId, token = token};
+            return new { id = user.UserId, token };
         }
 
         [HttpDelete("delete")]
@@ -118,9 +113,67 @@ namespace LeitourApi.Controllers
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok($"{user.NameUser} Has been deleted");
         }
 
+        [HttpPost("follow/{email}")]
+        public async Task<IActionResult> FollowUser([FromHeader] string token,string email)
+        {
+            int id = TokenService.DecodeToken(token);
+            if (_context.Users == null)
+                return NotFound();
+
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+                return NotFound();
+            
+            var newFollowing = await _context.Users.Where(user => user.Email == email)
+                    .FirstOrDefaultAsync();
+
+            if (newFollowing == null)
+                return NotFound();
+
+            _context.FollowingLists.Add(new FollowingList(user.UserId));
+            await _context.SaveChangesAsync();
+
+            var followingList = await _context.FollowingLists.Where(list => list.UserId == user.UserId)
+                    .FirstOrDefaultAsync();
+
+            if(followingList == null)
+                return NotFound();
+
+            _context.FollowingUsers.Add(new FollowingUser(followingList.FollowingListId,newFollowing.UserId) );
+            await _context.SaveChangesAsync();
+
+            return Ok($"You are now following {email}");
+        }
+
+
+        [HttpGet("followingList/{email}")]
+        public async Task<ActionResult<IEnumerable<User>>> FollowingUser(string email)
+        {
+            var user = await _context.Users.Where(user => user.Email == email)
+                    .FirstOrDefaultAsync();
+
+            if (user == null)
+                return NotFound();
+
+            var followingList = await _context.FollowingLists.Where(list => list.UserId == user.UserId)
+                .FirstOrDefaultAsync();
+
+            if(followingList == null)
+                return NotFound($"{user.NameUser} is following no one");
+
+            try{
+                var followingUser = await _context.FollowingUsers.Where(flUser => flUser.FollowingListId == followingList.FollowingListId)
+                    .ToListAsync();
+               
+                return users;
+            }
+            catch{
+                return NotFound($"{user.NameUser} is following no one");
+            }
+        }
         private bool UserExists(int id)
         {
             return (_context.Users?.Any(e => e.UserId == id)).GetValueOrDefault();
