@@ -15,8 +15,6 @@ namespace LeitourApi.Services;
 
 public class GoogleBooksService
 {
-
-    
     public static List<GoogleBooks> FormatResponse(JsonObject response)
     {
         JsonArray jsonBookArray = response["items"].AsArray();
@@ -36,9 +34,9 @@ public class GoogleBooksService
             book.Description = (string) jsonVolumeInfo["description"];
 
             JsonArray isbn = jsonVolumeInfo["industryIdentifiers"].AsArray();
-            int[] isbnArray = {Convert.ToInt16(isbn[0]["identifier"]),Convert.ToInt16(isbn[1]["identifier"])};
-            book.Isbn10 = isbnArray.Min();
-            book.Isbn13 = isbnArray.Max();
+         //   int[] isbnArray = {Convert.ToInt16(isbn[0]["identifier"]),Convert.ToInt16(isbn[1]["identifier"])};
+            book.Isbn10 = 10;//isbnArray.Min();
+            book.Isbn13 = 13;//isbnArray.Max();
 
             book.Pages = (int) jsonVolumeInfo["pageCount"].AsValue();
 
@@ -52,13 +50,7 @@ public class GoogleBooksService
             try { book.Cover = (string)jsonVolumeInfo["imageLinks"].AsObject()["thumbnail"].AsValue(); }
             catch{ book.Cover = "null";}
             Books.Add(book);
-        } //Nos matamos o cão tinhoso
+        }
         return Books;
     }
-
-
-    /* public JsonAttribute verifyAtrr(JsonObject obj, string attr)
-     {
-         return ((JsonObject) obj[attr] != null);
-     }*/
 }

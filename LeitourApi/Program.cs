@@ -1,6 +1,8 @@
 //using LeitourApi.Models;
 using LeitourApi.Models;
 using LeitourApi.Settings;
+using LeitourApi.Services.UserService;
+using LeitourApi.Services.PageService;
 using MySql.Data;
 
 using MySql.Data.MySqlClient;
@@ -38,6 +40,10 @@ builder.Services.AddDbContext<LeitourContext>(
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IPageService, PageService>();
+
+
 
 
 var app = builder.Build();

@@ -17,10 +17,8 @@ namespace LeitourApi.Controllers
     {
         private readonly LeitourContext _context;
 
-        public PostsController(LeitourContext context)
-        {
-            _context = context;
-        }
+        public PostsController(LeitourContext context) => _context = context;
+        
 
         // GET: api/Posts
         [HttpGet]
@@ -33,20 +31,16 @@ namespace LeitourApi.Controllers
             return await _context.Posts.ToListAsync();
         }
 
-        // GET: api/Posts/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Post>> GetPost(int id)
         {
           if (_context.Posts == null)
-          {
               return NotFound();
-          }
+          
             var post = await _context.Posts.FindAsync(id);
 
             if (post == null)
-            {
                 return NotFound();
-            }
 
             return post;
         }
@@ -55,12 +49,11 @@ namespace LeitourApi.Controllers
         public async Task<ActionResult<IEnumerable<Post>>> GetPost(string email)
         {
             if (_context.Posts == null)
-            {
                 return NotFound();
-            }
 
-            var user = _context.Users.Where(user => user.Email == email)
-                   .FirstOrDefault();
+
+            var user = await _context.Users.Where(user => user.Email == email)
+                   .FirstOrDefaultAsync();
 
             if (user == null)
                 return NotFound();
@@ -68,23 +61,22 @@ namespace LeitourApi.Controllers
             var post = _context.Posts.Where(posts => posts.UserId == user.UserId).ToList();
 
             if (post == null)
-            {
                 return NotFound();
-            }
 
             return post;
         }
 
-
-        // PUT: api/Posts/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutPost([FromHeader]string token, int id, [FromBody] Post post)
         {
+            if (!PostExists(id))
+                return NotFound("Post doesn't exist");
+
             if (id != post.PostId)
                 return BadRequest();
 
             int userId = TokenService.DecodeToken(token);
+
             if (userId != post.UserId)
                 return BadRequest();
 
@@ -96,55 +88,42 @@ namespace LeitourApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!PostExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                throw;
             }
 
             return NoContent();
         }
 
-        // POST: api/Posts
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    
         [HttpPost]
         public async Task<ActionResult<Post>> PostPost([FromHeader] string token, Post post)
         {
             int userId = TokenService.DecodeToken(token);
             if (userId != post.UserId)
                 return BadRequest();
-
-            if (_context.Posts == null)
-          {
-              return Problem("Entity set 'LeitourContext.Posts'  is null.");
-          }
+                
             _context.Posts.Add(post);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetPost", new { id = post.PostId }, post);
         }
 
-        // DELETE: api/Posts/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePost([FromHeader] string token, int id)
         {
+            var post = await _context.Posts.FindAsync(id);
+            if (post == null)
+                return NotFound("This post doesn't exist");
+
             int userId = TokenService.DecodeToken(token);
-            if (userId != id)
+            if (userId != post.UserId)
                 return BadRequest();
 
             if (_context.Posts == null)
             {
                 return NotFound();
             }
-            var post = await _context.Posts.FindAsync(id);
-            if (post == null)
-            {
-                return NotFound();
-            }
+            
 
             _context.Posts.Remove(post);
             await _context.SaveChangesAsync();

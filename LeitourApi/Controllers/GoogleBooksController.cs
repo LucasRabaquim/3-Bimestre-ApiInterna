@@ -68,28 +68,20 @@ namespace LeitourApi.Controllers
             return NoContent();
         }
 
-        /*
-        private static string QUERY_PARAM = "q";
-    private static string MODE = "mode";
-    private static string LIMIT = "limit";
-    private static string ORDER_BY = "orderBy";
-    private static string MAX_RESULTS = "maxResults";
-    private static string OFFSET = "offset";
-    private static string INTITLE = "intitle";
-    private static string INAUTHOR = "inauthor";
-    private static string INPUBLISHER = "inpublisher";
-    private static string SUBJECT = "subject";
-    private static string ISBN = "isbn";
-    private static string ISBN10 = "ISBN_10";
-    private static string ISBN13 = "ISBN_13";
-    private static string KEY = "key";
-
-    private static string API_KEY = "AIzaSyAz_H70Ju10k16gGDt-V-wQnYll-q7q7LY";
-
-    private static string API_URL = "https://www.googleapis.com/books/v1/volumes?q=intitle:drag%C3%B5es%20de%20eter&key=AIzaSyAz_H70Ju10k16gGDt-V-wQnYll-q7q7LY";//"https://www.googleapis.com/books/v1/volumes";
-
-
-        */
+        /*[HttpGet("bookkey/{key}")]
+        public async Task<ActionResult<IEnumerable<GoogleBooks>>?> GetByIsbn(string key)
+        {
+            Uri url = new Uri($"{API_URL}?q=isbn:{isbn}&key={API_KEY}");
+            HttpResponseMessage response = await client.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                JsonObject? jsonResponse = await response.Content.ReadFromJsonAsync<JsonObject>();
+                if(jsonResponse == null)
+                    return null;
+                return GoogleBooksService.FormatResponse(jsonResponse);
+            }
+            return NoContent();
+        }*/
     }
 }
 

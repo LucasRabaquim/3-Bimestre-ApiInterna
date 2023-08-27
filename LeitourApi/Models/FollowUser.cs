@@ -8,7 +8,7 @@ namespace LeitourApi.Models;
 
 [Table("tbFollowingList")]
 [PrimaryKey(nameof(UserId), nameof(FollowingEmail))]
-public partial class FollowingList
+public partial class FollowUser
 {
     [Key]
     public int UserId { get; set; }
@@ -17,8 +17,8 @@ public partial class FollowingList
     public string FollowingEmail { get; set; }
 
  
-    public FollowingList(){}
-    public FollowingList(int userId,string email){
+    public FollowUser(){}
+    public FollowUser(int userId,string email){
         this.UserId = userId;
         this.FollowingEmail = email;
     }

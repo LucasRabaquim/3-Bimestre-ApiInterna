@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,8 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LeitourApi.Models;
 using LeitourApi.Services;
-using Org.BouncyCastle.Bcpg;
-using Azure.Messaging;
+using LeitourApi.Services.UserService;
 
 namespace LeitourApi.Controllers
 {
@@ -16,23 +15,24 @@ namespace LeitourApi.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly LeitourContext _context;
-        public UserController(LeitourContext context) => _context = context;
+        public readonly IUserService _userService;
+        public UserController(IUserService userService) => _userService = userService;
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            if (_context.Users == null)
+            List<User> users = await _userService.GetAll();
+            if(users == null)
                 return NotFound();
-            return await _context.Users.ToListAsync();
+            else
+                return users;
         }
 
 
         [HttpPost("login")]
         public async Task<ActionResult<dynamic>> Authenticate([FromBody] User loggingUser)
         {
-            var registeredUser = await _context.Users.Where(user => user.Email == loggingUser.Email)
-                    .FirstOrDefaultAsync();
+            User registeredUser = await _userService.GetByEmail(loggingUser.Email);
 
             if (registeredUser == null)
                 return NotFound("User does not exist");
@@ -47,12 +47,7 @@ namespace LeitourApi.Controllers
         [HttpGet("{email}")]
         public async Task<ActionResult<User>> GetUser(string email)
         {
-
-            if (_context.Users == null)
-              return NotFound();
-          
-            var user = await _context.Users.Where(user => user.Email == email)
-                    .FirstOrDefaultAsync();
+            User user = await _userService.GetByEmail(email);
 
             if (user == null)
                 return NotFound();
@@ -60,82 +55,72 @@ namespace LeitourApi.Controllers
             return user;
         }
 
+        [HttpGet("DEBUG/{token}")]
+        public async Task<ActionResult<int>> DEBUGID(string token)
+        {
+            return TokenService.DecodeToken(token);
+        }
+
         [HttpPut("alter")]
         public async Task<IActionResult> PutUser([FromHeader] string token, [FromBody] User user)
         {
             int id = TokenService.DecodeToken(token);
 
+            if (!_userService.UserExists(id))
+                return NotFound("This user doesn't exist");
+
             if (id != user.UserId)
                 return BadRequest("Operation is not Valid");
 
-            _context.Entry(user).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                    return NotFound();
-                else
-                    throw;
-            }
-
-            return Ok($"{user.NameUser} Has been alterated");
+            bool success = await _userService.UpdateUser(user);
+            if(success)
+                return Ok($"{user.NameUser} Has been alterated");
+            else
+                return BadRequest("The user couldn't be alterated"); 
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<dynamic>> PostUser([FromBody] User user)
-        {
-          if (_context.Users == null)
-              return Problem("Entity set 'LeitourContext.Users'  is null.");
-          
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+        public async Task<ActionResult<dynamic>> PostUser([FromBody] User newUser)
+        { 
+            User user = await _userService.GetByEmail(newUser.Email);
+            if(user != null)
+                return BadRequest("User with this email already exists");
 
-            var token = TokenService.GenerateToken(user);
-
-            return new { id = user.UserId, token };
+            await _userService.RegisterUser(newUser);
+            var token = TokenService.GenerateToken(newUser);
+            return new { id = newUser.UserId, token };
         }
 
-        [HttpDelete("delete")]
-        public async Task<IActionResult> DeleteUser([FromHeader] string token)
+        [HttpDelete("deactivate")]
+        public async Task<IActionResult> DeactivateUser([FromHeader] string token)
         {
             int id = TokenService.DecodeToken(token);
-            if (_context.Users == null)
-                return NotFound();
-            
-            var user = await _context.Users.FindAsync(id);
+
+            User? user = await _userService.GetById(id);
             if (user == null)
                 return NotFound();
 
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return Ok($"{user.NameUser} Has been deleted");
+            bool sucess = await _userService.DeactivateUser(id);
+            if(sucess)
+                return Ok($"{user.NameUser} Has been deactivated");
+            else
+                return BadRequest("The user couldn't be deleted");
         }
 
         [HttpPost("follow/{email}")]
         public async Task<IActionResult> FollowUser([FromHeader] string token,string email)
         {
             int id = TokenService.DecodeToken(token);
-            if (_context.Users == null)
-                return NotFound();
-
-            var user = await _context.Users.FindAsync(id);
+            User? user = await _userService.GetById(id);
             if (user == null)
                 return NotFound();
             
-            var followingEmail = await _context.Users.Where(user => user.Email == email)
-                    .FirstOrDefaultAsync();
+            User followingEmail = await _userService.GetByEmail(email);
 
             if (followingEmail == null)
                 return NotFound($"user with {email} does not exists");
 
-            _context.FollowingLists.Add(new FollowingList(user.UserId,email));
-            await _context.SaveChangesAsync();
-
+            await _userService.FollowUser(new FollowUser(user.UserId,email));
             return Ok($"You are now following {email}");
         }
 
@@ -143,56 +128,40 @@ namespace LeitourApi.Controllers
         public async Task<IActionResult> UnfollowUser([FromHeader] string token,string email)
         {
             int id = TokenService.DecodeToken(token);
-            if (_context.Users == null)
-                return NotFound();
 
-            var user = await _context.Users.FindAsync(id);
+            User? user = await _userService.GetById(id);
             if (user == null)
                 return NotFound();
             
-            var followingEmail = await _context.Users.Where(user => user.Email == email)
-                    .FirstOrDefaultAsync();
-
+            User followingEmail = await _userService.GetByEmail(email);
             if (followingEmail == null)
-                return NotFound($"user with {email} does not exists");
+                return NotFound();
 
-
-            var following = await _context.FollowingLists.Where(following => (id == following.UserId) && (email == following.FollowingEmail))
-                    .FirstOrDefaultAsync();
-            
-            if(following == null)
-                return NotFound($"You not following {email}");
-            _context.FollowingLists.Remove(following);
-            await _context.SaveChangesAsync();
-
-            return Ok($"You are not following {email} anymore");
+            bool success = await _userService.UnfollowUser(user, followingEmail);
+            if(success)
+                return Ok($"You are not following {email} anymore");
+            else
+                return NotFound($"You was not following {email} before");            
         }
 
 
         [HttpGet("followingList/{email}")]
         public async Task<ActionResult<IEnumerable<User>>> FollowingUser(string email)
         {
-            var x = await _context.Users.Where(user => user.Email == email)
-                    .FirstOrDefaultAsync();
-
-            if (x == null)
+            User user = await _userService.GetByEmail(email);
+            if (user == null)
                 return NotFound();
 
-            var followingUsers = _context.FollowingLists.Where(list => list.UserId == x.UserId).Select(x => x.FollowingEmail).ToArray();
+            var followingUsers = await _userService.GetFollowingList(user.UserId);
 
             if(followingUsers == null)
-                return NotFound($"{x.NameUser} is following no one");
+                return NotFound($"{user.NameUser} is following no one");
 
             List<User> list = new(){};
             foreach(string i in followingUsers)
-                list.Add(await _context.Users.Where(user => user.Email == i)
-                    .FirstOrDefaultAsync());
-            
+                list.Add(await _userService.GetByEmail(i));
+        
             return list;
-        }
-        private bool UserExists(int id)
-        {
-            return (_context.Users?.Any(e => e.UserId == id)).GetValueOrDefault();
         }
     }
 }

@@ -9,7 +9,7 @@ namespace LeitourApi.Models;
 public partial class User
 {
     [Key]
-    [Column("userId")]
+    [Column("UserId")]
     public int UserId { get; set; }
 
     [Column("NameUser")]
@@ -29,5 +29,5 @@ public partial class User
     public int RoleUser { get; set; }
 
     public bool? ActiveUser { get; set; }
-    //  public ICollection<FollowingList>? FollowingLists {get; set;}
+
 }
