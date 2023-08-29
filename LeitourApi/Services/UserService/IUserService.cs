@@ -22,4 +22,5 @@ public interface IUserService
     public Task<bool> UnfollowUser(User follower, User following);
 
     public Task<string[]> GetFollowingList(int id);
+    public Task<int[]> GetFollowerList(string email);
 }

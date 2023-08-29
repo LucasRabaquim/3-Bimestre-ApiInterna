@@ -28,7 +28,6 @@ namespace LeitourApi.Controllers
                 return users;
         }
 
-
         [HttpPost("login")]
         public async Task<ActionResult<dynamic>> Authenticate([FromBody] User loggingUser)
         {
@@ -53,12 +52,6 @@ namespace LeitourApi.Controllers
                 return NotFound();
 
             return user;
-        }
-
-        [HttpGet("DEBUG/{token}")]
-        public async Task<ActionResult<int>> DEBUGID(string token)
-        {
-            return TokenService.DecodeToken(token);
         }
 
         [HttpPut("alter")]
@@ -160,6 +153,25 @@ namespace LeitourApi.Controllers
             List<User> list = new(){};
             foreach(string i in followingUsers)
                 list.Add(await _userService.GetByEmail(i));
+        
+            return list;
+        }
+
+        [HttpGet("followerList/{email}")]
+        public async Task<ActionResult<IEnumerable<User>>> FollowersUser(string email)
+        {
+            User user = await _userService.GetByEmail(email);
+            if (user == null)
+                return NotFound();
+
+            var followingUsers = await _userService.GetFollowerList(email);
+
+            if(followingUsers == null)
+                return NotFound($"{user.NameUser} has no followers");
+
+            List<User> list = new(){};
+            foreach(int i in followingUsers)
+                list.Add(await _userService.GetById(i));
         
             return list;
         }

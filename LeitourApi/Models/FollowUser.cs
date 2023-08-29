@@ -16,7 +16,6 @@ public partial class FollowUser
     [Key]
     public string FollowingEmail { get; set; }
 
- 
     public FollowUser(){}
     public FollowUser(int userId,string email){
         this.UserId = userId;

@@ -52,15 +52,6 @@ create table tbFollowingList(
     foreign key(FollowingEmail) references tbUser(Email)
 );
 
-/*
-create table tbFollowerList(
-    UserId int not null,
-    foreign key(UserId) references tbUser(UserId),
-    FollowerEmail varchar(50) not null,
-    foreign key(FollowerEmail) references tbUser(Email)
-);
-*/
-
 create table tbBookPage(
     BookKey varchar(25) not null,
     PageId int not null,

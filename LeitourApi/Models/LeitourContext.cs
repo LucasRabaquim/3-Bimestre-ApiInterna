@@ -11,8 +11,7 @@ namespace LeitourApi.Models
         {
         }
         public DbSet<User> Users { get; set; }
-        public DbSet<FollowUser> Following { get; set; }
-        //public DbSet<FollowUser> Followers { get; set; }
+        public DbSet<FollowUser> FollowUsers { get; set; }
         public DbSet<FollowingPage> FollowingPages { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<Page> Pages { get; set; }

@@ -7,6 +7,7 @@ public class UserService : IUserService
 {
     private readonly LeitourContext _context;
     public UserService(LeitourContext context) => _context = context;
+
     public async Task<List<User?>> GetAll()
     {
         if (_context.Users == null)
@@ -19,6 +20,7 @@ public class UserService : IUserService
                 return null;    
         return await _context.Users.FindAsync(id);
     }
+
     public async Task<User?> GetByEmail(string email)
     {
         if (_context.Users == null)
@@ -60,22 +62,29 @@ public class UserService : IUserService
     }
 
     public async Task FollowUser(FollowUser followUser){
-        _context.Following.Add(followUser);
+        _context.FollowUsers.Add(followUser);
+        await _context.SaveChangesAsync();
+        _context.FollowUsers.Add(followUser);
         await _context.SaveChangesAsync();
     }
 
     public async Task<bool> UnfollowUser(User follower, User following){
-        FollowUser? follow = await _context.Following.Where(follow => (follower.UserId == follow.UserId)
+        FollowUser? follow = await _context.FollowUsers.Where(follow => (follower.UserId == follow.UserId)
                 && (following.Email == follow.FollowingEmail)).FirstOrDefaultAsync();
         if(follow == null)
             return false;
-        _context.Following.Remove(follow);
+        _context.FollowUsers.Remove(follow);
         await _context.SaveChangesAsync();
         return true;
     }
 
     public async Task<string[]> GetFollowingList(int id){
-        return await _context.Following.Where(list => list.UserId == id)
+        return await _context.FollowUsers.Where(list => list.UserId == id)
             .Select(x => x.FollowingEmail).ToArrayAsync();
+    }
+
+    public async Task<int[]> GetFollowerList(string email){
+        return await _context.FollowUsers.Where(list => list.FollowingEmail == email)
+            .Select(x => x.UserId).ToArrayAsync();
     }
 }
