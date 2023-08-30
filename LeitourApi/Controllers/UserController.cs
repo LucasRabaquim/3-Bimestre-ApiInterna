@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using LeitourApi.Models;
 using LeitourApi.Services;
 using LeitourApi.Services.UserService;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace LeitourApi.Controllers
 {
@@ -16,16 +17,14 @@ namespace LeitourApi.Controllers
     public class UserController : ControllerBase
     {
         public readonly IUserService _userService;
+
         public UserController(IUserService userService) => _userService = userService;
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             List<User> users = await _userService.GetAll();
-            if(users == null)
-                return NotFound();
-            else
-                return users;
+            return (users == null) ? UserNotFound() : Ok(users);
         }
 
         [HttpPost("login")]
@@ -34,13 +33,13 @@ namespace LeitourApi.Controllers
             User registeredUser = await _userService.GetByEmail(loggingUser.Email);
 
             if (registeredUser == null)
-                return NotFound("User does not exist");
+                EmailNotFound();
 
             if (loggingUser.Password != registeredUser.Password)
-                return NoContent();
+                return Unauthorized("Senha incorreta");
 
             var token = TokenService.GenerateToken(registeredUser);
-            return new { user = registeredUser,token };
+            return Ok(new {user = registeredUser,token});
         }
 
         [HttpGet("{email}")]
@@ -48,10 +47,7 @@ namespace LeitourApi.Controllers
         {
             User user = await _userService.GetByEmail(email);
 
-            if (user == null)
-                return NotFound();
-
-            return user;
+            return (user == null) ? EmailNotFound() : Ok(user);
         }
 
         [HttpPut("alter")]
@@ -60,16 +56,17 @@ namespace LeitourApi.Controllers
             int id = TokenService.DecodeToken(token);
 
             if (!_userService.UserExists(id))
-                return NotFound("This user doesn't exist");
+                return NotFound("Esse usuário não existe");
 
             if (id != user.UserId)
-                return BadRequest("Operation is not Valid");
+                return BadRequest("A sessão difere do usuário do qual está tentando alterar");
 
             bool success = await _userService.UpdateUser(user);
             if(success)
-                return Ok($"{user.NameUser} Has been alterated");
+                return Ok($"{user.NameUser} foi alterado");
             else
-                return BadRequest("The user couldn't be alterated"); 
+                return StatusCode(StatusCodes.Status501NotImplemented,
+                    "Erro interno, o usuário não pode ser alterado"); 
         }
 
         [HttpPost("register")]
@@ -77,11 +74,11 @@ namespace LeitourApi.Controllers
         { 
             User user = await _userService.GetByEmail(newUser.Email);
             if(user != null)
-                return BadRequest("User with this email already exists");
+                return BadRequest("Já existe um usuário com esse email");
 
             await _userService.RegisterUser(newUser);
             var token = TokenService.GenerateToken(newUser);
-            return new { id = newUser.UserId, token };
+            return Created("Usuário criado",new {user = newUser,token});
         }
 
         [HttpDelete("deactivate")]
@@ -91,13 +88,14 @@ namespace LeitourApi.Controllers
 
             User? user = await _userService.GetById(id);
             if (user == null)
-                return NotFound();
+                return NotFound("Esse usuário não foi encontrado");
 
             bool sucess = await _userService.DeactivateUser(id);
             if(sucess)
-                return Ok($"{user.NameUser} Has been deactivated");
+                return Ok($"{user.NameUser} foi desativado");
             else
-                return BadRequest("The user couldn't be deleted");
+                return StatusCode(StatusCodes.Status501NotImplemented,
+                    "Erro interno, o usuário não pode ser deletado"); 
         }
 
         [HttpPost("follow/{email}")]
@@ -106,15 +104,15 @@ namespace LeitourApi.Controllers
             int id = TokenService.DecodeToken(token);
             User? user = await _userService.GetById(id);
             if (user == null)
-                return NotFound();
+                return BadRequest("Tente logar novamente antes de tentar denovo");
             
             User followingEmail = await _userService.GetByEmail(email);
 
             if (followingEmail == null)
-                return NotFound($"user with {email} does not exists");
+                return EmailNotFound();
 
             await _userService.FollowUser(new FollowUser(user.UserId,email));
-            return Ok($"You are now following {email}");
+            return Ok($"Agora você está seguindo {email}");
         }
 
         [HttpPost("unfollow/{email}")]
@@ -124,17 +122,17 @@ namespace LeitourApi.Controllers
 
             User? user = await _userService.GetById(id);
             if (user == null)
-                return NotFound();
+                return BadRequest("Tente logar novamente antes de tentar denovo ");
             
             User followingEmail = await _userService.GetByEmail(email);
             if (followingEmail == null)
-                return NotFound();
+                return EmailNotFound();
 
             bool success = await _userService.UnfollowUser(user, followingEmail);
             if(success)
-                return Ok($"You are not following {email} anymore");
+                return Ok($"Você não está mais seguindo {email}");
             else
-                return NotFound($"You was not following {email} before");            
+                return BadRequest($"Você não estava seguindo {email} antes");            
         }
 
 
@@ -143,12 +141,12 @@ namespace LeitourApi.Controllers
         {
             User user = await _userService.GetByEmail(email);
             if (user == null)
-                return NotFound();
+                return UserNotFound();
 
             var followingUsers = await _userService.GetFollowingList(user.UserId);
 
             if(followingUsers == null)
-                return NotFound($"{user.NameUser} is following no one");
+                return NotFound($"{user.NameUser} não está seguindo ninguém");
 
             List<User> list = new(){};
             foreach(string i in followingUsers)
@@ -162,12 +160,12 @@ namespace LeitourApi.Controllers
         {
             User user = await _userService.GetByEmail(email);
             if (user == null)
-                return NotFound();
+                return UserNotFound();
 
             var followingUsers = await _userService.GetFollowerList(email);
 
             if(followingUsers == null)
-                return NotFound($"{user.NameUser} has no followers");
+                return NotFound($"{user.NameUser} não tem seguidores");
 
             List<User> list = new(){};
             foreach(int i in followingUsers)
@@ -175,5 +173,9 @@ namespace LeitourApi.Controllers
         
             return list;
         }
+
+        public ActionResult EmailNotFound() => NotFound("Não foi encontrado um usuário com esse email");
+        public ActionResult UserNotFound() => NotFound("O usuário não foi encontrado");
+        
     }
 }

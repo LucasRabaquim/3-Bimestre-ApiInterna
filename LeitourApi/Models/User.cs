@@ -10,24 +10,24 @@ public partial class User
 {
     [Key]
     [Column("UserId")]
-    public int UserId { get; set; }
+    public required int UserId { get; set; }
 
     [Column("NameUser")]
     //[MaxLength(20)]
-    public string NameUser { get; set; } = null!;
+    public required string NameUser { get; set; } = null!;
 
     [MaxLength(60)]
-    public string Email { get; set; } = null!;
+    public required string Email { get; set; } = null!;
 
     [Column("PasswordUser")]
-    public string Password { get; set; } = null!;
+    public required string Password { get; set; } = null!;
 
     // public byte[]? ProfilePhoto { get; set; }
 
-    public decimal Theme { get; set; }
+    public decimal Theme { get; set; } = 0;
 
-    public int RoleUser { get; set; }
+    public int RoleUser { get; set; } = 0;
 
-    public bool? ActiveUser { get; set; }
+    public required bool? ActiveUser { get; set; } = true;
 
 }

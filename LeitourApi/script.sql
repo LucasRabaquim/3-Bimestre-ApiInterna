@@ -66,9 +66,9 @@ insert into tbUser(NameUser,PasswordUser,Email) values('Luiz','12345','Luiz@gmai
 insert into tbPost(UserId,messagePost) values (1,'Primeira vez usando a plataforma');
 insert into tbPost(UserId,messagePost,likes) values (2,'Queria doar alguns livros, alguem tem interesse?',10);
 
-insert into tbFollowingList values (1,Daniel@gmail.com);
-insert into tbFollowingList values (1,Luiz@gmail.com);
-insert into tbFollowingList values (2,Lucas@gmail.com);
+insert into tbFollowingList values (1,'Daniel@gmail.com');
+insert into tbFollowingList values (1,'Luiz@gmail.com');
+insert into tbFollowingList values (2,'Lucas@gmail.com');
 
 insert into tbPage(NamePage, DescriptionPage) values ('Potter Heads','Uma pagina para a discussão de todos os livros da série harry potter');
 insert into tbFollowingPage values(3,1,2);

@@ -30,7 +30,7 @@ namespace LeitourApi.Controllers
         {
             if (_context.Pages == null)
                 return NotFound();
-            return await _context.Pages.ToListAsync();
+            return Ok(await _context.Pages.ToListAsync());
         }
 
         [HttpGet("{PageId}")]
@@ -43,9 +43,9 @@ namespace LeitourApi.Controllers
             var Page = await _context.Pages.FindAsync(PageId);
 
             if (Page == null)
-                return NotFound();
+                return PageNotFound();
 
-            return Page;
+            return Ok(Page);
         }
 
         [HttpPost("create")]
@@ -60,7 +60,7 @@ namespace LeitourApi.Controllers
             _context.FollowingPages.Add(flPage);
             await _context.SaveChangesAsync();
 
-            return new { Page, message = "Page has been created" };
+            return new { Page, message = "A página foi criada" };
         }
 
         [HttpPut("alter/{PageId}")]
@@ -71,14 +71,14 @@ namespace LeitourApi.Controllers
             var Page = await _context.Pages.FindAsync(PageId);
 
             if (Page == null)
-                return NotFound();
+                return PageNotFound();
 
             var adminUser = await _context.FollowingPages.Where(flPage => flPage.UserId == id
                 && flPage.PageId == PageId
                 && flPage.RoleUser != (int)RolePage.Common).FirstOrDefaultAsync();
 
             if (adminUser == null)
-                return BadRequest("Operation is not Valid");
+                return BadRequest("Você não é da admistração dessa página");
 
             NewPage.AlteratedDate = DateTime.Now;
 
@@ -88,7 +88,7 @@ namespace LeitourApi.Controllers
                 await _context.SaveChangesAsync();
             
 
-            return Ok($"{Page.NamePage} Has been alterated");
+            return Ok($"{Page.NamePage} foi alterada");
         }
 
 
@@ -101,21 +101,21 @@ namespace LeitourApi.Controllers
             var Page = await _context.Pages.FindAsync(PageId);
 
             if (Page == null)
-                return NotFound();
+                return PageNotFound();
 
             var adminUser = await _context.FollowingPages.Where(flPage => flPage.UserId == id
                 && flPage.PageId == PageId
                 && flPage.RoleUser == (int)RolePage.Creator).FirstOrDefaultAsync();
 
             if (adminUser == null)
-                return BadRequest("Operation is not Valid");
+                return BadRequest("Você não criou essa página");
 
             Page.ActivePage = false;
             _context.Entry(Page).State = EntityState.Modified;
 
             await _context.SaveChangesAsync();
 
-            return Ok($"{Page.NamePage} Has been deactivated");
+            return Ok($"{Page.NamePage} foi desativada");
         }
 
         [HttpPost("follow/{PageId}")]
@@ -125,13 +125,13 @@ namespace LeitourApi.Controllers
 
             var Page = await _context.Pages.FindAsync(PageId);
             if (Page == null)
-                return NotFound();
+                return PageNotFound();
 
             FollowingPage flPage = new(id, PageId, 0);
             _context.FollowingPages.Add(flPage);
             await _context.SaveChangesAsync();
 
-            return Ok($"You are now following {Page.NamePage}");
+            return Ok($"Você está seguindo {Page.NamePage}");
         }
 
         [HttpPost("unfollow/{PageId}")]
@@ -141,18 +141,18 @@ namespace LeitourApi.Controllers
 
             var Page = await _context.Pages.FindAsync(PageId);
             if (Page == null)
-                return NotFound();
+                return PageNotFound();
 
             var followingPage = await _context.FollowingPages.Where(Page => Page.PageId == PageId
                 && Page.UserId == id).FirstOrDefaultAsync();
 
             if (followingPage == null)
-                return NotFound($"You not following {Page.NamePage}");
+                return NotFound($"Você não estava seguindo {Page.NamePage} antes");
 
             _context.FollowingPages.Remove(followingPage);
             await _context.SaveChangesAsync();
 
-            return Ok($"You are not following {Page.NamePage} anymore");
+            return Ok($"Você não está mais seguindo {Page.NamePage}");
         }
 
 
@@ -162,12 +162,12 @@ namespace LeitourApi.Controllers
             int id = TokenService.DecodeToken(token);
             var User = await _userService.GetById(id);
             if (User == null)
-                return NotFound();
+                return UserNotFound();
 
             List<Page> followingPages = await _pageService.GetPageList(id);
 
             if (followingPages == null)
-                return NotFound($"You are not following any page");
+                return NotFound($"Você não segue nenhuma página");
 
             return followingPages;
         }
@@ -177,18 +177,22 @@ namespace LeitourApi.Controllers
         {
             var Page = await _pageService.GetById(PageId);
             if (Page == null)
-                return NotFound();
+                return PageNotFound();
 
             var pageFollowers = await _pageService.GetPageFollowers(PageId);
 
             if (pageFollowers == null)
-                return NotFound($"This page has no followers");
+                return NotFound($"Essa pagina não tem seguidores");
 
             List<User> list = new(){};
             foreach(int i in pageFollowers)
                 list.Add(await _userService.GetById(i));
-            return list;
+            return Ok(list);
         }
+
+        public ActionResult EmailNotFound() => NotFound("Não foi encontrado um usuário com esse email");
+        public ActionResult UserNotFound() => NotFound("O usuário não foi encontrado");
+        public ActionResult PageNotFound() => NotFound("A página não foi encontrada");
 
     }
 }
