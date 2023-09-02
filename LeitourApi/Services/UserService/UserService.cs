@@ -1,4 +1,5 @@
 using LeitourApi.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 
@@ -8,7 +9,7 @@ public class UserService : IUserService
     private readonly LeitourContext _context;
     public UserService(LeitourContext context) => _context = context;
 
-    public async Task<List<User?>> GetAll()
+    public async Task<List<User?>?> GetAll()
     {
         if (_context.Users == null)
             return null;

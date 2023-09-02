@@ -7,7 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LeitourApi.Models;
 using LeitourApi.Services;
+using Microsoft.AspNetCore.Http;
 using LeitourApi.Services.UserService;
+using LeitourApi.Services.MsgActionResult;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace LeitourApi.Controllers
@@ -18,36 +20,45 @@ namespace LeitourApi.Controllers
     {
         public readonly IUserService _userService;
 
-        public UserController(IUserService userService) => _userService = userService;
+        public readonly MsgActionResultService _msgService;
+        public UserController(IUserService userService, MsgActionResultService msgService){
+            _userService = userService;
+            _msgService = msgService;
+        }
+        
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            List<User> users = await _userService.GetAll();
-            return (users == null) ? UserNotFound() : Ok(users);
+            List<User>? users = await _userService.GetAll();
+            if(users == null)
+                return _msgService.MsgUserNotFound();
+            else
+                return users;
         }
 
         [HttpPost("login")]
         public async Task<ActionResult<dynamic>> Authenticate([FromBody] User loggingUser)
         {
-            User registeredUser = await _userService.GetByEmail(loggingUser.Email);
+            User? registeredUser = await _userService.GetByEmail(loggingUser.Email);
 
             if (registeredUser == null)
-                EmailNotFound();
+                return _msgService.MsgUserNotFound();
 
             if (loggingUser.Password != registeredUser.Password)
-                return Unauthorized("Senha incorreta");
+                return _msgService.MsgWrongPassword();
 
             var token = TokenService.GenerateToken(registeredUser);
-            return Ok(new {user = registeredUser,token});
+            return new { user = registeredUser,token };
         }
 
         [HttpGet("{email}")]
         public async Task<ActionResult<User>> GetUser(string email)
         {
-            User user = await _userService.GetByEmail(email);
-
-            return (user == null) ? EmailNotFound() : Ok(user);
+            User? user = await _userService.GetByEmail(email);
+            if (user == null)
+                return _msgService.MsgUserNotFound();
+            return user;
         }
 
         [HttpPut("alter")]
@@ -56,29 +67,28 @@ namespace LeitourApi.Controllers
             int id = TokenService.DecodeToken(token);
 
             if (!_userService.UserExists(id))
-                return NotFound("Esse usuário não existe");
+                return _msgService.MsgUserNotFound();
 
             if (id != user.UserId)
-                return BadRequest("A sessão difere do usuário do qual está tentando alterar");
+                return _msgService.MsgInvalid();
 
             bool success = await _userService.UpdateUser(user);
             if(success)
-                return Ok($"{user.NameUser} foi alterado");
+                return Ok($"{user.NameUser} Foi alterado");
             else
-                return StatusCode(StatusCodes.Status501NotImplemented,
-                    "Erro interno, o usuário não pode ser alterado"); 
+                return _msgService.MsgInternalError("usuário","alteração");
         }
 
         [HttpPost("register")]
         public async Task<ActionResult<dynamic>> PostUser([FromBody] User newUser)
         { 
-            User user = await _userService.GetByEmail(newUser.Email);
+            User? user = await _userService.GetByEmail(newUser.Email);
             if(user != null)
-                return BadRequest("Já existe um usuário com esse email");
+                return _msgService.MsgAlreadyExists();
 
             await _userService.RegisterUser(newUser);
             var token = TokenService.GenerateToken(newUser);
-            return Created("Usuário criado",new {user = newUser,token});
+            return new { id = newUser.UserId, token };
         }
 
         [HttpDelete("deactivate")]
@@ -88,14 +98,13 @@ namespace LeitourApi.Controllers
 
             User? user = await _userService.GetById(id);
             if (user == null)
-                return NotFound("Esse usuário não foi encontrado");
+                return _msgService.MsgUserNotFound();
 
             bool sucess = await _userService.DeactivateUser(id);
             if(sucess)
                 return Ok($"{user.NameUser} foi desativado");
             else
-                return StatusCode(StatusCodes.Status501NotImplemented,
-                    "Erro interno, o usuário não pode ser deletado"); 
+                return _msgService.MsgInternalError("usuario","desativação");
         }
 
         [HttpPost("follow/{email}")]
@@ -104,15 +113,15 @@ namespace LeitourApi.Controllers
             int id = TokenService.DecodeToken(token);
             User? user = await _userService.GetById(id);
             if (user == null)
-                return BadRequest("Tente logar novamente antes de tentar denovo");
+                return NotFound();
             
-            User followingEmail = await _userService.GetByEmail(email);
+            User? followingEmail = await _userService.GetByEmail(email);
 
             if (followingEmail == null)
-                return EmailNotFound();
+                return _msgService.MsgUserNotFound();
 
             await _userService.FollowUser(new FollowUser(user.UserId,email));
-            return Ok($"Agora você está seguindo {email}");
+            return Ok($"Você está seguindo {email}");
         }
 
         [HttpPost("unfollow/{email}")]
@@ -122,11 +131,11 @@ namespace LeitourApi.Controllers
 
             User? user = await _userService.GetById(id);
             if (user == null)
-                return BadRequest("Tente logar novamente antes de tentar denovo ");
+                return NotFound();
             
-            User followingEmail = await _userService.GetByEmail(email);
+            User? followingEmail = await _userService.GetByEmail(email);
             if (followingEmail == null)
-                return EmailNotFound();
+                return NotFound();
 
             bool success = await _userService.UnfollowUser(user, followingEmail);
             if(success)
@@ -139,9 +148,9 @@ namespace LeitourApi.Controllers
         [HttpGet("followingList/{email}")]
         public async Task<ActionResult<IEnumerable<User>>> FollowingUser(string email)
         {
-            User user = await _userService.GetByEmail(email);
+            User? user = await _userService.GetByEmail(email);
             if (user == null)
-                return UserNotFound();
+                return _msgService.MsgUserNotFound();
 
             var followingUsers = await _userService.GetFollowingList(user.UserId);
 
@@ -158,9 +167,9 @@ namespace LeitourApi.Controllers
         [HttpGet("followerList/{email}")]
         public async Task<ActionResult<IEnumerable<User>>> FollowersUser(string email)
         {
-            User user = await _userService.GetByEmail(email);
+            User? user = await _userService.GetByEmail(email);
             if (user == null)
-                return UserNotFound();
+                return NotFound();
 
             var followingUsers = await _userService.GetFollowerList(email);
 
@@ -174,8 +183,11 @@ namespace LeitourApi.Controllers
             return list;
         }
 
-        public ActionResult EmailNotFound() => NotFound("Não foi encontrado um usuário com esse email");
-        public ActionResult UserNotFound() => NotFound("O usuário não foi encontrado");
-        
+       /* public ActionResult _msgService.MsgUserNotFound() => NotFound("O usuário não existe.");
+        public ActionResult _msgService.MsgWrongPassword() => BadRequest("Senha incorreta.");
+        public ActionResult _msgService.MsgInvalid() => BadRequest("Autenticação invalida, logue novamente.");
+        public ActionResult _msgService.MsgAlreadyExists() => BadRequest("Já existe usuário com esse email.");
+        public ObjectResult _msgService.MsgInternalError(string obj,string acao) => StatusCode(StatusCodes.Status500InternalServerError, $"A {acao} de {obj} não foi bem sucedida.");
+  */      
     }
 }

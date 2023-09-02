@@ -3,6 +3,8 @@ using LeitourApi.Models;
 using LeitourApi.Settings;
 using LeitourApi.Services.UserService;
 using LeitourApi.Services.PageService;
+using LeitourApi.Services.PostService;
+using LeitourApi.Services.MsgActionResult;
 using MySql.Data;
 
 using MySql.Data.MySqlClient;
@@ -40,6 +42,8 @@ builder.Services.AddDbContext<LeitourContext>(
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+builder.Services.AddScoped<MsgActionResultService>();
+builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPageService, PageService>();
 

@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 using LeitourApi.Models;
 using LeitourApi.Services;
-using NuGet.Common;
+using LeitourApi.Services.UserService;
+using LeitourApi.Services.PostService;
+using LeitourApi.Services.MsgActionResult;
 
 namespace LeitourApi.Controllers
 {
@@ -17,80 +13,62 @@ namespace LeitourApi.Controllers
     {
         private readonly LeitourContext _context;
 
-        public PostsController(LeitourContext context) => _context = context;
+        public readonly IUserService _userService;
+        public readonly IPostService _postService;
+        public readonly MsgActionResultService _msgService;
+        public PostsController(LeitourContext context, IUserService userService, IPostService postService, MsgActionResultService msgService){
+            _context = context;
+            _userService = userService;
+            _postService = postService;
+            _msgService = msgService;
+        }
         
-
-        // GET: api/Posts
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Post>>> GetPosts()
         {
-          if (_context.Posts == null)
-              return NotFound();
-          
-            return await _context.Posts.ToListAsync();
+            var posts = await _postService.GetPosts();
+            return (posts == null) ? _msgService.MsgPostNotFound() : posts;
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Post>> GetPost(int id)
         {
-          if (_context.Posts == null)
-              return NotFound();
-          
-            var post = await _context.Posts.FindAsync(id);
-
-            if (post == null)
-                return NotFound();
-
-            return post;
+            var post = await _postService.GetById(id);
+            return (post == null) ? _msgService.MsgPostNotFound() : post;
         }
 
         [HttpGet("email/{email}")]
         public async Task<ActionResult<IEnumerable<Post>>> GetPost(string email)
         {
-            if (_context.Posts == null)
-                return NotFound();
+            var user = await _userService.GetByEmail(email);
+            if(user == null)
+                return _msgService.MsgUserNotFound();
 
+            var posts = await _postService.GetByUserId(user.UserId);
 
-            var user = await _context.Users.Where(user => user.Email == email)
-                   .FirstOrDefaultAsync();
+            if (posts == null)
+                return _msgService.MsgPostNotFound();
 
-            if (user == null)
-                return NotFound();
-
-            var post = _context.Posts.Where(posts => posts.UserId == user.UserId).ToList();
-
-            if (post == null)
-                return NotFound();
-
-            return post;
+            return posts;
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPost([FromHeader]string token, int id, [FromBody] Post post)
+        public async Task<IActionResult> PutPost([FromHeader]string token, int id, [FromBody] Post updatePost)
         {
-            if (!PostExists(id))
-                return NotFound("Post doesn't exist");
+            var post = await _postService.GetById(id);
+            if (post == null)
+                return _msgService.MsgPostNotFound();
 
-            if (id != post.PostId)
-                return BadRequest();
+            if (id != updatePost.PostId)
+                return _msgService.MsgInvalidPost();
 
             int userId = TokenService.DecodeToken(token);
 
-            if (userId != post.UserId)
-                return BadRequest();
+            if (userId != updatePost.UserId)
+                return _msgService.MsgInvalid();
 
-            _context.Entry(post).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                throw;
-            }
-
-            return NoContent();
+            _postService.UpdatePost(updatePost);
+            return Ok("O post foi atualizado");
         }
 
     
@@ -99,40 +77,36 @@ namespace LeitourApi.Controllers
         {
             int userId = TokenService.DecodeToken(token);
             if (userId != post.UserId)
-                return BadRequest();
+                return _msgService.MsgInvalid();
                 
-            _context.Posts.Add(post);
-            await _context.SaveChangesAsync();
-
+            _postService.CreatePost(post);
             return CreatedAtAction("GetPost", new { id = post.PostId }, post);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePost([FromHeader] string token, int id)
         {
-            var post = await _context.Posts.FindAsync(id);
+            var post = await _postService.GetById(id);
             if (post == null)
-                return NotFound("This post doesn't exist");
+                return _msgService.MsgPostNotFound();
 
             int userId = TokenService.DecodeToken(token);
+
             if (userId != post.UserId)
-                return BadRequest();
+                return _msgService.MsgInvalidPost();
 
-            if (_context.Posts == null)
-            {
-                return NotFound();
-            }
-            
+            _postService.DeletePost(post);
 
-            _context.Posts.Remove(post);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return Ok("O post foi deletado");
         }
-
-        private bool PostExists(int id)
-        {
-            return (_context.Posts?.Any(e => e.PostId == id)).GetValueOrDefault();
-        }
+/*
+        public ActionResult _msgService.MsgUserNotFound() => NotFound("O usuário não existe.");
+        public ActionResult _msgService.MsgPostNotFound() => NotFound("O post não foi encontrado");
+        public ActionResult _msgService.MsgInvalid() => BadRequest("Autenticação invalida, logue novamente.");
+        public ActionResult _msgService.MsgInvalidPost() => BadRequest("Algo deu errado na atualização do post");
+        public ActionResult _msgService.MsgAlreadyExists() => BadRequest("Já existe usuário com esse email.");
+        public ObjectResult _msgService.MsgInternalError(string obj,string acao) => StatusCode(StatusCodes.Status500InternalServerError, $"A {acao} de {obj} não foi bem sucedida.");
+  
+        public ActionResult _msgService.MsgPageNotFound() => NotFound("A página não foi encontrada");*/
     }
 }
