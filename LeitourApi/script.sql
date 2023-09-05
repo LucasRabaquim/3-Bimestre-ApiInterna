@@ -59,6 +59,22 @@ create table tbBookPage(
     foreign key(PageId) references tbPage(PageId)
 );
 
+create table tbSavedBook(
+    SavedId int primary key auto_increment,
+    UserId int not null,
+    foreign key(UserId) references tbUser(UserId),
+    BookKey varchar(25) not null,
+    public tinyint not null default 0
+);
+
+create table tbAnnotation(
+    AnnotationId int primary key auto_increment,
+    SavedId int not null,
+    foreign key(SavedId) references tbSavedBook(SavedId)
+    AnnotationText varchar(250) not null,
+    alteratedDate datetime not null default CURRENT_TIMESTAM
+);
+
 insert into tbUser(NameUser,PasswordUser,Email) values('Lucas','12345','Lucas@gmail.com');
 insert into tbUser(NameUser,PasswordUser,Email) values('Daniel','12345','Daniel@gmail.com');
 insert into tbUser(NameUser,PasswordUser,Email) values('Luiz','12345','Luiz@gmail.com');

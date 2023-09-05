@@ -10,9 +10,7 @@ public class Annotation
     [Key]
     public int AnnotationId { get; set; }
     public int SavedBookId { get; set; }
-    public bool Public { get; set; }
     public string AnnotationText { get; set; } = null!;
-    public DateTime AnnotationDate { get; set; }
-    public DateTime? AlteratedDate { get; set; }
+    public DateTime AlteratedDate { get; set; }
 
 }

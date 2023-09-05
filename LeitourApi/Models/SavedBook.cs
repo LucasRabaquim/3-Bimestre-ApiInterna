@@ -1,21 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LeitourApi.Models;
 
-public partial class BookUser
+[Table("tbSavedBook")]
+public partial class SavedBook
 {
     [Key]
-    public int SavedBookId { get; set; }
-
-  
+    public int SavedId { get; set; }
     public int UserId { get; set; }
-
-    public string BookId { get; set; } = null!;
-
     public bool Public { get; set; }
-
-
+    public string BookKey { get; set; } = null!;
+    public DateTime AlteratedDate { get; set; } = DateTime.Now;
 }

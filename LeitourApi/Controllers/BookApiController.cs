@@ -15,7 +15,7 @@ namespace LeitourApi.Controllers
 {
     [Route("api/SearchBy/")]
     [ApiController]
-    public class GoogleBooksController : ControllerBase
+    public class BookApiController : ControllerBase
     {
 
         const string API_KEY = "AIzaSyAz_H70Ju10k16gGDt-V-wQnYll-q7q7LY";
@@ -33,7 +33,7 @@ namespace LeitourApi.Controllers
                 JsonObject? jsonResponse = await response.Content.ReadFromJsonAsync<JsonObject>();
                 if(jsonResponse == null)
                     return null;
-                return GoogleBooksService.FormatResponse(jsonResponse);
+                return BookApiService.FormatResponse(jsonResponse);
             }
             return NoContent(); 
         }
@@ -48,7 +48,7 @@ namespace LeitourApi.Controllers
                 JsonObject? jsonResponse = await response.Content.ReadFromJsonAsync<JsonObject>();
                 if(jsonResponse == null)
                     return null;
-                return GoogleBooksService.FormatResponse(jsonResponse);
+                return BookApiService.FormatResponse(jsonResponse);
             }
             return NoContent();
         }
@@ -63,7 +63,7 @@ namespace LeitourApi.Controllers
                 JsonObject? jsonResponse = await response.Content.ReadFromJsonAsync<JsonObject>();
                 if(jsonResponse == null)
                     return null;
-                return GoogleBooksService.FormatResponse(jsonResponse);
+                return BookApiService.FormatResponse(jsonResponse);
             }
             return NoContent();
         }
@@ -78,7 +78,7 @@ namespace LeitourApi.Controllers
                 JsonObject? jsonResponse = await response.Content.ReadFromJsonAsync<JsonObject>();
                 if(jsonResponse == null)
                     return null;
-                return GoogleBooksService.FormatResponse(jsonResponse);
+                return BookApiService.FormatResponse(jsonResponse);
             }
             return NoContent();
         }*/

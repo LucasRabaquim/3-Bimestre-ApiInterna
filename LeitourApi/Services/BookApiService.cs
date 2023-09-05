@@ -13,7 +13,7 @@ using static System.Collections.IEnumerable;
 namespace LeitourApi.Services;
 
 
-public class GoogleBooksService
+public class BookApiService
 {
     public static List<GoogleBooks> FormatResponse(JsonObject response)
     {

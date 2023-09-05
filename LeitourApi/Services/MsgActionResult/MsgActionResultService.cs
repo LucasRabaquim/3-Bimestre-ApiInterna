@@ -19,6 +19,11 @@ public class MsgActionResultService : ControllerBase
        
         public ActionResult MsgInvalidPost() => BadRequest("Algo deu errado na atualização do post");
         public ActionResult MsgAlreadyExists() => BadRequest("Já existe usuário com esse email.");
+        public ActionResult MsgAnnotationPrivated() => BadRequest("Estas anotações são privadas");
+        public ActionResult MsgAnnotationNotFound() => BadRequest("As anotações não foram encontradas");
+        public ActionResult MsgSavedBookNotFound() => BadRequest("O livro não está salvo");
+        public ActionResult MsgAnnotationToPrivate() => BadRequest("Agora só você pode ver as anotações deste livro");
+        public ActionResult MsgAnnotationToPublic() => BadRequest("Agora todos podem ver as anotações sobre esse livro");
 
 
 }

@@ -15,6 +15,8 @@ namespace LeitourApi.Models
         public DbSet<FollowingPage> FollowingPages { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<Page> Pages { get; set; }
+        public DbSet<Annotation> Annotations { get; set; }
+        public DbSet<SavedBook> SavedBooks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -38,9 +40,18 @@ namespace LeitourApi.Models
                 .HasMany<FollowingPage>()
                 .WithOne();
 
-             modelBuilder.Entity<Page>()
+            modelBuilder.Entity<Page>()
                 .HasMany<BookPage>()
                 .WithOne();
+
+            modelBuilder.Entity<User>()
+                .HasMany<SavedBook>()
+                .WithOne();
+            
+            modelBuilder.Entity<SavedBook>()
+                .HasMany<Annotation>()
+                .WithOne();
+
         }
     }
 }

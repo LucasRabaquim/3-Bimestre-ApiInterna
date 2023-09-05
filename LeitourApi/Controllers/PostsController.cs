@@ -99,14 +99,5 @@ namespace LeitourApi.Controllers
 
             return Ok("O post foi deletado");
         }
-/*
-        public ActionResult _msgService.MsgUserNotFound() => NotFound("O usuário não existe.");
-        public ActionResult _msgService.MsgPostNotFound() => NotFound("O post não foi encontrado");
-        public ActionResult _msgService.MsgInvalid() => BadRequest("Autenticação invalida, logue novamente.");
-        public ActionResult _msgService.MsgInvalidPost() => BadRequest("Algo deu errado na atualização do post");
-        public ActionResult _msgService.MsgAlreadyExists() => BadRequest("Já existe usuário com esse email.");
-        public ObjectResult _msgService.MsgInternalError(string obj,string acao) => StatusCode(StatusCodes.Status500InternalServerError, $"A {acao} de {obj} não foi bem sucedida.");
-  
-        public ActionResult _msgService.MsgPageNotFound() => NotFound("A página não foi encontrada");*/
     }
 }
