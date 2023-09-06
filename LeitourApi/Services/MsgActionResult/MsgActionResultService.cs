@@ -24,6 +24,7 @@ public class MsgActionResultService : ControllerBase
         public ActionResult MsgSavedBookNotFound() => BadRequest("O livro não está salvo");
         public ActionResult MsgAnnotationToPrivate() => BadRequest("Agora só você pode ver as anotações deste livro");
         public ActionResult MsgAnnotationToPublic() => BadRequest("Agora todos podem ver as anotações sobre esse livro");
+        public ActionResult MsgNotReturned() => StatusCode(StatusCodes.Status500InternalServerError,"Falha ao pesquisar livro. Verifique a conexão de internet.");
 
 
 }

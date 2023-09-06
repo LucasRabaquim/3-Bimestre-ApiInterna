@@ -18,11 +18,4 @@ public interface IUserService
     public Task<User?> GetById(int id);
 
     public Task<bool> DeactivateUser(int id);
-
-    public Task FollowUser(FollowUser flUser);
-
-    public Task<bool> UnfollowUser(User follower, User following);
-
-    public Task<string[]> GetFollowingList(int id);
-    public Task<int[]> GetFollowerList(string email);
 }
