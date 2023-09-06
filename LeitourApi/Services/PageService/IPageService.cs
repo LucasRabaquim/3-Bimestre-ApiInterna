@@ -5,6 +5,8 @@ public interface IPageService
 {
 
    public Task<List<Page>?> GetAllPages();
+
+   public Task<List<Page>?> GetPagesByName(string namePage);
    public Task<Page?> GetById(int id);
 
    public Task<Page> CreatePage(Page page, int id);

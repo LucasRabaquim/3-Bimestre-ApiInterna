@@ -1,13 +1,9 @@
-//using LeitourApi.Models;
 using LeitourApi.Models;
 using LeitourApi.Settings;
 using LeitourApi.Services.UserService;
 using LeitourApi.Services.PageService;
 using LeitourApi.Services.PostService;
 using LeitourApi.Services.MsgActionResult;
-using MySql.Data;
-
-using MySql.Data.MySqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;

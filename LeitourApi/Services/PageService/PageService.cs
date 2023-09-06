@@ -10,6 +10,9 @@ public class PageService : IPageService
 
     public async Task<List<Page>?> GetAllPages() => 
         (_context.Pages == null) ? null : await _context.Pages.ToListAsync();
+
+    public async Task<List<Page>?> GetPagesByName(string namePage) => 
+        (_context.Pages == null) ? null : await _context.Pages.Where(page => page.NamePage == namePage).ToListAsync();
     
     public async Task<Page?> GetById(int id) =>    
         (_context.Pages == null) ? null :  await _context.Pages.FindAsync(id);

@@ -38,6 +38,13 @@ namespace LeitourApi.Controllers
             return (pages == null) ? NotFound("Não foi encontrada nenhuma página"): pages;
         }
 
+        [HttpGet("{namePage}")]
+        public async Task<ActionResult<IEnumerable<Page>>> GetPageByName(string namePage)
+        {
+            List<Page>? pages = await _pageService.GetPagesByName(namePage);
+            return (pages == null) ? NotFound("Não foi encontrada nenhuma página com esse nome"): pages;
+        }
+
         [HttpGet("{PageId}")]
         public async Task<ActionResult<Page>> GetPage(int PageId)
         {
