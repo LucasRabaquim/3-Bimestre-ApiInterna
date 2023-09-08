@@ -9,65 +9,91 @@ using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
 using static System.Collections.IEnumerable;
 using LeitourApi.Services.BookApiService;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
+using NuGet.ProjectModel;
 
 namespace LeitourApi.Services.BookApiService;
 
 
 public class BookApiService
 {   
-    private static string API_URL = "https://openlibrary.org/";
+    
     private static string QUERY_PARAM = "q";
     private static string MODE = "mode";
     private static string LIMIT = "limit";
     private static string OFFSET = "offset";
 
-    static HttpClient client = new HttpClient();
+    readonly HttpClient client = new();
     const int limit = 10;
 
-    public async Task<JsonObject?> HttpGet(Uri url){
+    public async Task<JObject> HttpGet(Uri url){
         HttpResponseMessage response = await client.GetAsync(url);
+        JObject jsonObject = new();
         if (response.IsSuccessStatusCode)
         {
-            JsonObject? jsonResponse = await response.Content.ReadFromJsonAsync<JsonObject>();
-            return jsonResponse;
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            jsonObject = JObject.Parse(jsonResponse);
+            if(jsonObject["docs"].IsNullOrEmpty())
+                jsonObject["Code"] = StatusCodes.Status404NotFound;
+            else
+                jsonObject["Code"] = StatusCodes.Status200OK;
         }
-        return null;
+        else
+            jsonObject["Code"] = StatusCodes.Status500InternalServerError;
+        return jsonObject;
     }
 
-    public static List<GoogleBooks> FormatResponse(JsonObject response)
+    public async Task<List<BookApi>> FormatResponse(JObject response)
     {
-        JsonArray jsonBookArray = response["items"].AsArray();
-        List<GoogleBooks> Books = new();
-        foreach (JsonObject jsonItems in jsonBookArray)
+        List<BookApi> Books = new();
+        JArray jArray = (JArray)response["docs"];
+        foreach(JObject jsonItems in jArray)
         {
-            GoogleBooks book = new();
-            book.Key = jsonItems["id"].AsValue().ToString();
-            JsonObject jsonVolumeInfo = jsonItems["volumeInfo"].AsObject();
-            book.Title = (string) jsonVolumeInfo["title"];
-            book.Subtitle = (string) jsonVolumeInfo["subtitle"];
+            BookApi book = new();
+       
+            string key = jsonItems["key"].ToString();; 
+            book.Key = key;
 
-            book.Authors = "null";
+          //  JsonObject jsonVolumeInfo = jsonItems["volumeInfo"].AsObject();
+
+            book.Title = jsonItems["title"].ToString();
+
+        
+            string[] authorArray = jsonItems["author_name"].ValueAsArray<string>();
+            book.Authors = String.Join(",", authorArray);
             
-            book.Publisher = (string) jsonVolumeInfo["publisher"];
-            book.PublishedDate = (string) jsonVolumeInfo["publishedDate"];
-            book.Description = (string) jsonVolumeInfo["description"];
+            string[] publisherArray = jsonItems["publisher"].ValueAsArray<string>();
+            book.Publisher = publisherArray.FirstOrDefault();
+            
 
-            JsonArray isbn = jsonVolumeInfo["industryIdentifiers"].AsArray();
-         //   int[] isbnArray = {Convert.ToInt16(isbn[0]["identifier"]),Convert.ToInt16(isbn[1]["identifier"])};
-            book.Isbn10 = 10;//isbnArray.Min();
-            book.Isbn13 = 13;//isbnArray.Max();
+            book.PublishedDate= jsonItems["first_publish_year"].ToString();
 
-            book.Pages = (int) jsonVolumeInfo["pageCount"].AsValue();
+           
+            book.Description = "";//jsonItems["description"].ToString();
 
-            book.Categories = "null";
+            
+            string[] languageArray = jsonItems["language"].ValueAsArray<string>(); 
+            book.Language = String.Join(",", languageArray);
 
+            try { book.Pages = (int) jsonItems["number_of_pages_median"];}
+            catch{ book.Pages = 0;}
+
+        /*    try { book.BookIsbn = jsonItems["isbn"].ValueAsArray<string>()[0];}
+            catch{ book.BookIsbn = "";}*/
+           
+
+            /*book.Categories = "null";
+
+            string[] isbn = jsonItems["industryIdentifiers"].ValueAsArray<string>();
 
             //try { book.Categories = (string)jsonVolumeInfo["categories"].AsArray().AsValue(); }
             //catch{ book.Categories = "null";}
+           /* */
+
+            try { book.Cover = $"https://covers.openlibrary.org/b/olid/{key}-L.jpg";}
+            catch{ book.Cover = "";}
             
-            book.Language = (string) jsonVolumeInfo["language"];
-            try { book.Cover = (string)jsonVolumeInfo["imageLinks"].AsObject()["thumbnail"].AsValue(); }
-            catch{ book.Cover = "null";}
             Books.Add(book);
         }
         return Books;

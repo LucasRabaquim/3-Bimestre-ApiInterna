@@ -70,9 +70,9 @@ create table tbSavedBook(
 create table tbAnnotation(
     AnnotationId int primary key auto_increment,
     SavedId int not null,
-    foreign key(SavedId) references tbSavedBook(SavedId)
+    foreign key(SavedId) references tbSavedBook(SavedId),
     AnnotationText varchar(250) not null,
-    alteratedDate datetime not null default CURRENT_TIMESTAM
+    alteratedDate datetime not null default CURRENT_TIMESTAMP
 );
 
 insert into tbUser(NameUser,PasswordUser,Email) values('Lucas','12345','Lucas@gmail.com');

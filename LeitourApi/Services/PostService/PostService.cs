@@ -20,18 +20,18 @@ public class PostService : IPostService
     public async Task<List<Post>?> GetByUserId(int id) => (_context.Posts == null) 
         ? null : await _context.Posts.Where(posts => posts.UserId == id).ToListAsync();
 
-    public async void UpdatePost(Post post){
+    public async Task UpdatePost(Post post){
         post.AlteratedDate = DateTime.Now;
         _context.Entry(post).State = EntityState.Modified;
         await _context.SaveChangesAsync();
     }
 
-    public async void CreatePost(Post post) {
+    public async Task CreatePost(Post post) {
         _context.Posts.Add(post);
         await _context.SaveChangesAsync();
     }
 
-    public async void DeletePost(Post post) {
+    public async Task DeletePost(Post post) {
         _context.Posts.Remove(post);
         await _context.SaveChangesAsync();
     }

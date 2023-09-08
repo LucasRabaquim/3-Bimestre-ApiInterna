@@ -29,5 +29,4 @@ public partial class User
     public int RoleUser { get; set; } = 0;
 
     public required bool? ActiveUser { get; set; } = true;
-
 }

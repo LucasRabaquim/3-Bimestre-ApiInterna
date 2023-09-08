@@ -35,7 +35,7 @@ namespace LeitourApi.Controllers
             int id = TokenService.DecodeToken(token);
             User? user = await _userService.GetById(id);
             if (user == null)
-                return NotFound();
+                return _msgService.MsgInvalid();
             
             User? followingEmail = await _userService.GetByEmail(email);
 
@@ -53,11 +53,11 @@ namespace LeitourApi.Controllers
 
             User? user = await _userService.GetById(id);
             if (user == null)
-                return NotFound();
+                return _msgService.MsgInvalid();
             
             User? followingEmail = await _userService.GetByEmail(email);
             if (followingEmail == null)
-                return NotFound();
+                return _msgService.MsgUserNotFound();
 
             bool success = await _followService.UnfollowUser(user, followingEmail);
             if(success)
@@ -91,7 +91,7 @@ namespace LeitourApi.Controllers
         {
             User? user = await _userService.GetByEmail(email);
             if (user == null)
-                return NotFound();
+                return _msgService.MsgUserNotFound();
 
             var followingUsers = await _followService.GetFollowerList(email);
 

@@ -1,3 +1,4 @@
+using LeitourApi.Controllers;
 using LeitourApi.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,72 +7,75 @@ namespace LeitourApi.Services.AnnotationService;
 public class AnnotationService : IAnnotationService{
 
     private readonly LeitourContext _context;
-    public AnnotationService(LeitourContext context){ 
-        _context = context;
-    }
+    public AnnotationService(LeitourContext context) => _context = context;
 
-    public async Task<List<Annotation>>? GetByAnnotationId(int savedBookId, int userId){
-        if(_context.Annotations == null) 
-            return null;
-        var savedBook = await _context.SavedBooks.FindAsync(savedBookId);
-        if (savedBook == null)
-            return null;
-        if(userId != savedBook.UserId && !savedBook.Public)
-            return null;
-        List<Annotation> list = await _context.Annotations.Where(annotation => annotation.SavedBookId == savedBook.SavedId).ToListAsync();
-    
-        return list;
-    }
-
-    public async Task<List<SavedBook>?> GetBySavedId(int id){
-        if(_context.Annotations == null) 
+    public async Task<List<SavedBook>?> GetAllSaved(int id){
+        if(_context.SavedBooks == null) 
             return null;
         List<SavedBook> savedBook = await _context.SavedBooks.
             Where(SavedBooks => SavedBooks.UserId == id).ToListAsync();
         return savedBook;
     }
 
-    public async Task<SavedBook>? SwitchPublic(int id){
-        if(_context.Annotations == null) 
+    public async Task<SavedBook?> GetSavedById(int id){
+        if(_context.SavedBooks == null) 
             return null;
-        SavedBook savedBook = await _context.SavedBooks.FindAsync(id);
-        savedBook.AlteratedDate = DateTime.Now;
-        savedBook.Public = !savedBook.Public;
+        SavedBook? savedBook = await _context.SavedBooks.FindAsync(id);
         return savedBook;
     }
 
-    public async void AlterAnnotation(Annotation annotation){    
+    public async Task SwitchPublic(SavedBook savedBook){
+        savedBook.Public = !savedBook.Public;
+        _context.Entry(savedBook).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<Annotation>? GetAnnotation(int id){
+        if(_context.Annotations == null) 
+            return null;
+        var annotation = await _context.Annotations.Where(annotation => 
+            annotation.AnnotationId == id).FirstOrDefaultAsync();
+        return annotation;
+    }
+    public async Task<List<Annotation>>? GetAllAnnotations(int savedBookId){
+        if(_context.Annotations == null) 
+            return null;
+        List<Annotation> list = await _context.Annotations.Where(annotation => annotation.SavedBookId == savedBookId).ToListAsync();
+        return list;
+    }
+
+    
+
+
+    public async Task AlterAnnotation(Annotation annotation){    
         annotation.AlteratedDate = DateTime.Now;
         _context.Entry(annotation).State = EntityState.Modified;
         await _context.SaveChangesAsync();
     }
 
-    public async void DeleteAnnotation(Annotation annotation){    
+    public async Task DeleteAnnotation(Annotation annotation){    
         _context.Annotations.Remove(annotation);
         await _context.SaveChangesAsync();
     }
 
-    public async void CreateAnnotation(Annotation annotation){
-        _context.Annotations.Add(annotation);
+    public async Task CreateAnnotation(Annotation annotation){
+        await _context.Annotations.AddAsync(annotation);
         await _context.SaveChangesAsync();
     }
 
-    public async Task<string> UnsaveBook(int savedBookId){
-        if(_context.Annotations == null) 
-            return null;
-        var savedBook = await _context.SavedBooks.FindAsync(savedBookId);
-        if (savedBook == null)
-            return null;
-       
+    public async Task SaveBook(SavedBook savedBook){
+        await _context.SavedBooks.AddAsync(savedBook);
+        await _context.SaveChangesAsync();
+    }
+    
+    public async Task UnsaveBook(SavedBook savedBook){
         List<Annotation> list = await _context.Annotations.Where(annotation => annotation.SavedBookId == savedBook.SavedId).ToListAsync();
 
         foreach(Annotation annotation in list)
-            DeleteAnnotation(annotation);
+            await DeleteAnnotation(annotation);
         
         _context.SavedBooks.Remove(savedBook);
         await _context.SaveChangesAsync();
-
-        return "Success";
     }
 
 }

@@ -12,6 +12,7 @@ using System.Text.Json.Nodes;
 using System.Reflection;
 using LeitourApi.Services.BookApiService;
 using LeitourApi.Services.MsgActionResult;
+using Newtonsoft.Json.Linq;
 
 namespace LeitourApi.Controllers
 {
@@ -20,9 +21,9 @@ namespace LeitourApi.Controllers
     public class BookApiController : ControllerBase
     {
 
-        const string API_KEY = "AIzaSyAz_H70Ju10k16gGDt-V-wQnYll-q7q7LY";
-        const string API_URL = "https://www.googleapis.com/books/v1/volumes"; //volumes?q=intitle:{bookName}&key=AIzaSyAz_H70Ju10k16gGDt-V-wQnYll-q7q7LY";//"";
-        static HttpClient client = new HttpClient();
+        private static string API_URL = "https://openlibrary.org/";
+        //volumes?q=intitle:{bookName}&key=AIzaSyAz_H70Ju10k16gGDt-V-wQnYll-q7q7LY";//"";
+        static readonly HttpClient client = new();
 
         public readonly BookApiService _bookApi;
         public readonly MsgActionResultService _httpMessage;
@@ -33,55 +34,31 @@ namespace LeitourApi.Controllers
         }
 
         [HttpGet("Title/{title}")]
-        public async Task<ActionResult<IEnumerable<GoogleBooks>>?> GetByTitle(string title)
+        public async Task<ActionResult<IEnumerable<BookApi>>?> GetByTitle(string title)
         {
-            Uri url = new($"{API_URL}?q={title}+intitle:{title}&key={API_KEY}");
-            JsonObject? reponse = await _bookApi.HttpGet(url);
-            if(reponse == null)
-                return _httpMessage.MsgNotReturned();
-            return
-            return NoContent(); 
+            Uri url = new($"{API_URL}search.json?q={title}&limit=10");
+            JObject response = await _bookApi.HttpGet(url);
+            if((int) response["Code"] == StatusCodes.Status500InternalServerError)
+                return _httpMessage.MsgBookNotReturned();
+            if((int) response["Code"]  == StatusCodes.Status404NotFound)
+                return _httpMessage.MsgBookNotFound();
+            //return _httpMessage.MsgDebugValue(response.ToString());
+            List<BookApi> books = await _bookApi.FormatResponse(response);
+            return books;
         }
 
         [HttpGet("isbn/{isbn}")]
-        public async Task<ActionResult<IEnumerable<GoogleBooks>>?> GetByIsbn(string isbn)
+        public async Task<ActionResult<IEnumerable<BookApi>>?> GetByIsbn(string isbn)
         {
-            Uri url = new($"{API_URL}/isbn/{isbn}.json");
-            JsonObject? reponse = await _bookApi.HttpGet(url);
-            return NoContent(); 
+            Uri url = new($"{API_URL}search.json?isbn={isbn}&limit=10");
+            JObject response = await _bookApi.HttpGet(url);
+            if((int) response["Code"] == StatusCodes.Status500InternalServerError)
+                return _httpMessage.MsgBookNotReturned();
+            if((int) response["Code"]  == StatusCodes.Status404NotFound)
+                return _httpMessage.MsgBookNotFound();
+            //return _httpMessage.MsgDebugValue(response.ToString());
+            List<BookApi> books = await _bookApi.FormatResponse(response);
+            return books;
         }
- 
-        [HttpGet("Author/{name}")]
-        public async Task<ActionResult<IEnumerable<GoogleBooks>>?> GetByAuthor(string name)
-        {
-            Uri url = new Uri($"{API_URL}?q={name}+inauthor:{name}&key={API_KEY}");
-            HttpResponseMessage response = await client.GetAsync(url);
-            if (response.IsSuccessStatusCode)
-            {
-                JsonObject? jsonResponse = await response.Content.ReadFromJsonAsync<JsonObject>();
-                if(jsonResponse == null)
-                    return null;
-                return BookApiService.FormatResponse(jsonResponse);
-            }
-            return NoContent();
-        }
-
-        
-
-        /*[HttpGet("bookkey/{key}")]
-        public async Task<ActionResult<IEnumerable<GoogleBooks>>?> GetByIsbn(string key)
-        {
-            Uri url = new Uri($"{API_URL}?q=isbn:{isbn}&key={API_KEY}");
-            HttpResponseMessage response = await client.GetAsync(url);
-            if (response.IsSuccessStatusCode)
-            {
-                JsonObject? jsonResponse = await response.Content.ReadFromJsonAsync<JsonObject>();
-                if(jsonResponse == null)
-                    return null;
-                return BookApiService.FormatResponse(jsonResponse);
-            }
-            return NoContent();
-        }*/
     }
 }
-

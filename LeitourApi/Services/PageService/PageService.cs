@@ -33,19 +33,19 @@ public class PageService : IPageService
         return adminUser == null;
     }
 
-    public async void UpdatePage(Page page){
+    public async Task UpdatePage(Page page){
         page.AlteratedDate = DateTime.Now;
         _context.Entry(page).State = EntityState.Modified;
         await _context.SaveChangesAsync();
     }
 
-    public async void FollowPage(int userId, int pageId){
+    public async Task FollowPage(int userId, int pageId){
         FollowingPage flPage = new(userId, pageId, (int) RolePage.Common);
         _context.FollowingPages.Add(flPage);
         await _context.SaveChangesAsync();
     }
 
-    public async void UnfollowPage(int userId, int pageId){
+    public async Task UnfollowPage(int userId, int pageId){
         FollowingPage flPage = new(userId, pageId, (int) RolePage.Common);
         _context.FollowingPages.Remove(flPage);
         await _context.SaveChangesAsync();

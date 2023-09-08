@@ -4,10 +4,13 @@ using LeitourApi.Services.UserService;
 using LeitourApi.Services.PageService;
 using LeitourApi.Services.PostService;
 using LeitourApi.Services.MsgActionResult;
+using LeitourApi.Services.BookApiService;
+using LeitourApi.Services.AnnotationService;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using LeitourApi.Services.FollowService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +42,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 builder.Services.AddScoped<MsgActionResultService>();
+builder.Services.AddScoped<BookApiService>();
+builder.Services.AddScoped<IAnnotationService, AnnotationService>();
+builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPageService, PageService>();

@@ -9,7 +9,7 @@ public class UserService : IUserService
     private readonly LeitourContext _context;
     public UserService(LeitourContext context) => _context = context;
 
-    public async Task<List<User?>?> GetAll()
+    public async Task<List<User>?> GetAll()
     {
         if (_context.Users == null)
             return null;
@@ -57,7 +57,7 @@ public class UserService : IUserService
     }
 
     public async Task<bool> DeactivateUser(int id){
-        User? user = await GetById(id);
+        User user = await GetById(id);
         user.ActiveUser = false;
         return await UpdateUser(user);
     }

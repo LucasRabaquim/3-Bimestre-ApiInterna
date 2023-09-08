@@ -13,10 +13,10 @@ public interface IPageService
 
    public Task<bool> VerifyAdmin(int pageId, int id);
 
-   public void FollowPage(int userId, int pageId);
-   public void UnfollowPage(int userId, int pageId);
+   public Task FollowPage(int userId, int pageId);
+   public Task UnfollowPage(int userId, int pageId);
 
-   public void UpdatePage(Page page);
+   public Task UpdatePage(Page page);
 
    public Task<bool> VerifyFollowing(int userId, int pageId);
 

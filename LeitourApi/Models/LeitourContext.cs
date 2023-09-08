@@ -8,8 +8,7 @@ namespace LeitourApi.Models
     {
         public LeitourContext(DbContextOptions<LeitourContext> options)
         : base(options)
-        {
-        }
+        {}
         public DbSet<User> Users { get; set; }
         public DbSet<FollowUser> FollowUsers { get; set; }
         public DbSet<FollowingPage> FollowingPages { get; set; }

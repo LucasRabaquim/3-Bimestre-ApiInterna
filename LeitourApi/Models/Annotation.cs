@@ -9,6 +9,7 @@ public class Annotation
 {
     [Key]
     public int AnnotationId { get; set; }
+    [Column("SavedId")]
     public int SavedBookId { get; set; }
     public string AnnotationText { get; set; } = null!;
     public DateTime AlteratedDate { get; set; }

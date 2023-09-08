@@ -21,10 +21,16 @@ public class MsgActionResultService : ControllerBase
         public ActionResult MsgAlreadyExists() => BadRequest("Já existe usuário com esse email.");
         public ActionResult MsgAnnotationPrivated() => BadRequest("Estas anotações são privadas");
         public ActionResult MsgAnnotationNotFound() => BadRequest("As anotações não foram encontradas");
+        public ActionResult MsgAnnotationCreated() => Ok("As anotações foram criadas");
+        public ActionResult MsgAnnotationUpdated() => Ok("As anotações foram atualizadas");
+        public ActionResult MsgAnnotationDeleted() => Ok("As anotações foram deletadas");
         public ActionResult MsgSavedBookNotFound() => BadRequest("O livro não está salvo");
-        public ActionResult MsgAnnotationToPrivate() => BadRequest("Agora só você pode ver as anotações deste livro");
-        public ActionResult MsgAnnotationToPublic() => BadRequest("Agora todos podem ver as anotações sobre esse livro");
-        public ActionResult MsgNotReturned() => StatusCode(StatusCodes.Status500InternalServerError,"Falha ao pesquisar livro. Verifique a conexão de internet.");
+        public ActionResult MsgAnnotationToPrivate() => Ok("Agora só você pode ver as anotações deste livro");
+        public ActionResult MsgAnnotationToPublic() => Ok("Agora todos podem ver as anotações sobre esse livro");
+        public ActionResult MsgBookNotReturned() => StatusCode(StatusCodes.Status500InternalServerError,"Falha ao pesquisar livro. Verifique a conexão de internet.");
+        public ActionResult MsgBookNotFound() => NotFound("Não foi encontrado nenhum livro com o parâmetro pesquisado.");
+        public ActionResult MsgNoSavedBook() => NotFound("Você não tem nenhum livro salvo.");
+        public ActionResult MsgDebugValue(string message) => Ok(message);
 
 
 }
