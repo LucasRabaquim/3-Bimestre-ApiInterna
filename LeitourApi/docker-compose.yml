@@ -1,0 +1,41 @@
+version: '3.3'
+
+networks:
+  backend:
+services:
+  leitourapi:
+    container_name: containerleitour
+    image: leitourapi:1.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - backend
+    ports:
+      - "80:80"
+    environment:
+      MYSQL_ROOT_USER: root
+      MYSQL_ROOT_PASSWORD: 12345678
+      MYSQL_DATABASE: dbLeitour
+      MYSQL_USER: user
+      MYSQL_PASSWORD: 12345678
+
+    depends_on:
+      - mysql
+
+  mysql:
+    container_name: database
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    networks:
+      - backend
+    environment:
+      MYSQL_ROOT_USER: root
+      MYSQL_ROOT_PASSWORD: 12345678
+      MYSQL_DATABASE: dbLeitour
+      MYSQL_USER: user
+      MYSQL_PASSWORD: 12345678
+
+volumes:
+  db-volume:

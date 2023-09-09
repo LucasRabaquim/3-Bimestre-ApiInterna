@@ -33,9 +33,8 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
 builder.Services.AddDbContext<LeitourContext>(
-    options => options.UseMySQL("Server=localhost;Database=dbLeitour;User Id=root;Password=12345678")
+    options => options.UseMySQL("Server=mysql;port=3306;Database=dbLeitour;User Id=root;Password=12345678;")
 );
 
 builder.Services.AddEndpointsApiExplorer();

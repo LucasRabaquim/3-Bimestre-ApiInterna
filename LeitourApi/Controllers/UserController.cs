@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using LeitourApi.Services.UserService;
 using LeitourApi.Services.MsgActionResult;
 using Microsoft.AspNetCore.Http.HttpResults;
+using MySqlX.XDevAPI.Common;
 
 namespace LeitourApi.Controllers
 {
@@ -35,6 +36,12 @@ namespace LeitourApi.Controllers
                 return _msgService.MsgUserNotFound();
             else
                 return users;
+        }
+
+        [HttpGet("debug")]
+        public async Task<IActionResult> Debug()
+        {
+            return Ok("Teste");
         }
 
         [HttpPost("login")]
