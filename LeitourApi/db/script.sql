@@ -99,10 +99,10 @@ insert into tbBookPage values('rkr7zwEACAAJ',1);
 insert into tbBookPage values('yjUQCwAAQBAJ',1);
 
 insert into tbPost(PageId,UserId,messagePost,likes) values (1,2,'Alguem sabe de uma livraria onde vendem todos os livros?',2);
-
+/*
 select * from tbUser;
 select * from tbPost;
 select * from tbPage;
 select * from tbFollowingList;
 select * from tbBookPage;
-
+*/
