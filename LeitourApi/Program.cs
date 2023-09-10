@@ -41,8 +41,10 @@ builder.Services.AddAuthentication(options =>
 
 Database db = new();
 builder.Services.AddDbContext<LeitourContext>(
-    options => options.UseMySQL(db.sqlConnectionString)
-);
+    options => { 
+        options.UseMySQL(db.sqlConnectionString);
+        options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+});
 
 //string script = File.ReadAllText(@"./init.sql");
 
@@ -69,11 +71,11 @@ builder.Services.AddScoped<IPageService, PageService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+//}
 
 app.UseHttpsRedirection();
 

@@ -11,13 +11,10 @@ namespace LeitourApi.Controllers
     [ApiController]
     public class PostsController : ControllerBase
     {
-        private readonly LeitourContext _context;
-
         public readonly IUserService _userService;
         public readonly IPostService _postService;
         public readonly MsgActionResultService _msgService;
-        public PostsController(LeitourContext context, IUserService userService, IPostService postService, MsgActionResultService msgService){
-            _context = context;
+        public PostsController(IUserService userService, IPostService postService, MsgActionResultService msgService){
             _userService = userService;
             _postService = postService;
             _msgService = msgService;

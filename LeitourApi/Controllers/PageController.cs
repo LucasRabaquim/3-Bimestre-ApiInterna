@@ -38,7 +38,7 @@ namespace LeitourApi.Controllers
             return (pages == null) ? NotFound("Não foi encontrada nenhuma página"): pages;
         }
 
-        [HttpGet("{namePage}")]
+        [HttpGet("name/{namePage}")]
         public async Task<ActionResult<IEnumerable<Page>>> GetPageByName(string namePage)
         {
             List<Page>? pages = await _pageService.GetPagesByName(namePage);
@@ -127,7 +127,7 @@ namespace LeitourApi.Controllers
             if(alreadyFollowing)
                 return BadRequest("Você já está seguindo esta página");
             
-            _pageService.FollowPage(id, pageId);
+            await _pageService.FollowPage(id, pageId);
             return Ok($"Você está seguindo {Page.NamePage}");
         }
 

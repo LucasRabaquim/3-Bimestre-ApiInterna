@@ -73,8 +73,9 @@ public class BookApiService
             book.Description = "";//jsonItems["description"].ToString();
 
             
-            string[] languageArray = jsonItems["language"].ValueAsArray<string>(); 
-            book.Language = String.Join(",", languageArray);
+            try {string[] languageArray = jsonItems["language"].ValueAsArray<string>(); 
+            book.Language = String.Join(",", languageArray);}
+            catch{book.Language = "";}
 
             try { book.Pages = (int) jsonItems["number_of_pages_median"];}
             catch{ book.Pages = 0;}

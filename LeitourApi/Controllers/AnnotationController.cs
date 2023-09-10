@@ -34,7 +34,7 @@ namespace LeitourApi.Controllers
             return (saved == null) ? _msgService.MsgNoSavedBook() : saved;
         }
 
-        [HttpGet("SavedBooks/{id}")]
+       /* [HttpGet("SavedBooks/{id}")]
         public async Task<ActionResult<SavedBook>?> GetBySavedId([FromHeader] string token, int id)
         {
             int userId = TokenService.DecodeToken(token);
@@ -43,7 +43,7 @@ namespace LeitourApi.Controllers
                 return _msgService.MsgInvalid();
             var saved = await _AnnotationService.GetSavedById(id);
             return (saved == null) ? _msgService.MsgSavedBookNotFound() : saved;
-        }
+        }*/
 
         [HttpPut("SavedBooks/{id}")]
         public async Task<ActionResult<SavedBook>>? SwitchPublic([FromHeader] string token, int id)
@@ -82,7 +82,7 @@ namespace LeitourApi.Controllers
             if(saved == null) 
             return _msgService.MsgSavedBookNotFound();
             await _AnnotationService.UnsaveBook(saved);
-            return _msgService.MsgAnnotationDeleted();
+            return _msgService.MsgBookUnsaved();
         }
 
 

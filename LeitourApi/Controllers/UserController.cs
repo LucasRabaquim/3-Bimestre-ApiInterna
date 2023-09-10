@@ -38,11 +38,9 @@ namespace LeitourApi.Controllers
                 return users;
         }
 
-        [HttpGet("debug")]
-        public async Task<IActionResult> Debug()
-        {
-            return Ok("Teste");
-        }
+        /*[HttpGet("debug")]
+        public async Task<IActionResult> Debug() => Ok("Teste");*/
+        
 
         [HttpPost("login")]
         public async Task<ActionResult<dynamic>> Authenticate([FromBody] User loggingUser)

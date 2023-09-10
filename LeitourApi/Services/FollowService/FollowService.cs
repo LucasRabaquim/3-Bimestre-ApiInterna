@@ -10,9 +10,7 @@ public class FollowService : IFollowService
     public FollowService(LeitourContext context) => _context = context;
 
     public async Task FollowUser(FollowUser followUser){
-        _context.FollowUsers.Add(followUser);
-        await _context.SaveChangesAsync();
-        _context.FollowUsers.Add(followUser);
+        await _context.FollowUsers.AddAsync(followUser);
         await _context.SaveChangesAsync();
     }
 

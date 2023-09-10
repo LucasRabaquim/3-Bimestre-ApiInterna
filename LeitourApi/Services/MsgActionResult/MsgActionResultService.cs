@@ -31,6 +31,5 @@ public class MsgActionResultService : ControllerBase
         public ActionResult MsgBookNotFound() => NotFound("Não foi encontrado nenhum livro com o parâmetro pesquisado.");
         public ActionResult MsgNoSavedBook() => NotFound("Você não tem nenhum livro salvo.");
         public ActionResult MsgDebugValue(string message) => Ok(message);
-
-
+        public ActionResult MsgBookUnsaved() => Ok("Você dessalvou o livro.");
 }

@@ -6,9 +6,8 @@ namespace LeitourApi.Services.PostService;
 public class PostService : IPostService
 {
     private readonly LeitourContext _context;
-    public PostService(LeitourContext context){ 
-        _context = context;
-    }
+    public PostService(LeitourContext context) => _context = context;
+    
 
     public async Task<List<Post>?> GetPosts() => (_context.Posts == null) 
         ? null : await _context.Posts.ToListAsync();
@@ -28,7 +27,7 @@ public class PostService : IPostService
 
     public async Task CreatePost(Post post) {
         post.PostId = 0;
-        _context.Posts.Add(post);
+        await _context.Posts.AddAsync(post);
         await _context.SaveChangesAsync();
     }
 

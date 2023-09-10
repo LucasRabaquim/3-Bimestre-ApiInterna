@@ -53,7 +53,7 @@ public class UserService : IUserService
 
     public async Task RegisterUser(User user){
         user.UserId = 0;
-        _context.Users.Add(user);
+        await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
 
     }

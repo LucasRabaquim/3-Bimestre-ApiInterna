@@ -16,7 +16,7 @@ public class Database
 
     }
     
-    public string script = @"
+public string script = @"
         create database if not exists dbLeitour;
         use dbLeitour;
 

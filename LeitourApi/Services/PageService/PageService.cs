@@ -19,10 +19,10 @@ public class PageService : IPageService
     
     public async Task<Page> CreatePage(Page page, int id) {
         page.PageId = 0;
-        _context.Pages.Add(page);
+        await _context.Pages.AddAsync(page);
         await _context.SaveChangesAsync();
         FollowingPage flPage = new(id, page.PageId, (int) RolePage.Creator);
-        _context.FollowingPages.Add(flPage);
+        await _context.FollowingPages.AddAsync(flPage);
         await _context.SaveChangesAsync();
         return page;
     }
@@ -42,7 +42,7 @@ public class PageService : IPageService
 
     public async Task FollowPage(int userId, int pageId){
         FollowingPage flPage = new(userId, pageId, (int) RolePage.Common);
-        _context.FollowingPages.Add(flPage);
+        await _context.FollowingPages.AddAsync(flPage);
         await _context.SaveChangesAsync();
     }
 
