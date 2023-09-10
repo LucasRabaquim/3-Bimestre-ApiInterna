@@ -1,5 +1,4 @@
-drop database if exists dbLeitour;
-create database dbLeitour;
+create database if not exists dbLeitour;
 use dbLeitour;
 
 create table tbUser(

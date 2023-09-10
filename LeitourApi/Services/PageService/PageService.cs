@@ -18,6 +18,7 @@ public class PageService : IPageService
         (_context.Pages == null) ? null :  await _context.Pages.FindAsync(id);
     
     public async Task<Page> CreatePage(Page page, int id) {
+        page.PageId = 0;
         _context.Pages.Add(page);
         await _context.SaveChangesAsync();
         FollowingPage flPage = new(id, page.PageId, (int) RolePage.Creator);
@@ -58,7 +59,7 @@ public class PageService : IPageService
         return flPage;
     }
 
-    public async Task<List<Page?>> GetPageList(int id)
+    public async Task<List<Page>?> GetPageList(int id)
     {
         var flPage = await _context.FollowingPages.Where(flPage => flPage.UserId == id)
             .Select(page => page.PageId).ToListAsync();

@@ -23,7 +23,6 @@ namespace LeitourApi.Controllers
 
         private static string API_URL = "https://openlibrary.org/";
         //volumes?q=intitle:{bookName}&key=AIzaSyAz_H70Ju10k16gGDt-V-wQnYll-q7q7LY";//"";
-        static readonly HttpClient client = new();
 
         public readonly BookApiService _bookApi;
         public readonly MsgActionResultService _httpMessage;
@@ -38,9 +37,9 @@ namespace LeitourApi.Controllers
         {
             Uri url = new($"{API_URL}search.json?q={title}&limit=10");
             JObject response = await _bookApi.HttpGet(url);
-            if((int) response["Code"] == StatusCodes.Status500InternalServerError)
+            if((int?) response["Code"] == StatusCodes.Status500InternalServerError)
                 return _httpMessage.MsgBookNotReturned();
-            if((int) response["Code"]  == StatusCodes.Status404NotFound)
+            if((int?) response["Code"]  == StatusCodes.Status404NotFound)
                 return _httpMessage.MsgBookNotFound();
             //return _httpMessage.MsgDebugValue(response.ToString());
             List<BookApi> books = await _bookApi.FormatResponse(response);
@@ -52,9 +51,9 @@ namespace LeitourApi.Controllers
         {
             Uri url = new($"{API_URL}search.json?isbn={isbn}&limit=10");
             JObject response = await _bookApi.HttpGet(url);
-            if((int) response["Code"] == StatusCodes.Status500InternalServerError)
+            if((int?) response["Code"] == StatusCodes.Status500InternalServerError)
                 return _httpMessage.MsgBookNotReturned();
-            if((int) response["Code"]  == StatusCodes.Status404NotFound)
+            if((int?) response["Code"]  == StatusCodes.Status404NotFound)
                 return _httpMessage.MsgBookNotFound();
             //return _httpMessage.MsgDebugValue(response.ToString());
             List<BookApi> books = await _bookApi.FormatResponse(response);

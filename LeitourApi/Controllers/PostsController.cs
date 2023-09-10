@@ -67,7 +67,7 @@ namespace LeitourApi.Controllers
             if (userId != updatePost.UserId)
                 return _msgService.MsgInvalid();
 
-            _postService.UpdatePost(updatePost);
+            await _postService.UpdatePost(updatePost);
             return Ok("O post foi atualizado");
         }
 
@@ -79,7 +79,7 @@ namespace LeitourApi.Controllers
             if (userId != post.UserId)
                 return _msgService.MsgInvalid();
                 
-            _postService.CreatePost(post);
+            await _postService.CreatePost(post);
             return CreatedAtAction("GetPost", new { id = post.PostId }, post);
         }
 
@@ -95,7 +95,7 @@ namespace LeitourApi.Controllers
             if (userId != post.UserId)
                 return _msgService.MsgInvalidPost();
 
-            _postService.DeletePost(post);
+            await _postService.DeletePost(post);
 
             return Ok("O post foi deletado");
         }

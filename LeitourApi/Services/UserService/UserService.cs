@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using LeitourApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -51,13 +52,14 @@ public class UserService : IUserService
     }
 
     public async Task RegisterUser(User user){
+        user.UserId = 0;
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
     }
 
     public async Task<bool> DeactivateUser(int id){
-        User user = await GetById(id);
+        User? user = await GetById(id);
         user.ActiveUser = false;
         return await UpdateUser(user);
     }

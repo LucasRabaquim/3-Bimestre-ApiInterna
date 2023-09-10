@@ -22,5 +22,5 @@ public interface IPageService
 
    public Task<List<int>?>  GetPageFollowers(int id);
 
-   public Task<List<Page?>> GetPageList(int id);
+   public Task<List<Page>?> GetPageList(int id);
 }

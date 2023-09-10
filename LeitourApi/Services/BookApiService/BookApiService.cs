@@ -19,10 +19,10 @@ namespace LeitourApi.Services.BookApiService;
 public class BookApiService
 {   
     
-    private static string QUERY_PARAM = "q";
+    /*private static string QUERY_PARAM = "q";
     private static string MODE = "mode";
     private static string LIMIT = "limit";
-    private static string OFFSET = "offset";
+    private static string OFFSET = "offset";*/
 
     readonly HttpClient client = new();
     const int limit = 10;
@@ -48,7 +48,7 @@ public class BookApiService
     {
         List<BookApi> Books = new();
         JArray jArray = (JArray)response["docs"];
-        foreach(JObject jsonItems in jArray)
+        foreach(JObject jsonItems in jArray.Cast<JObject>())
         {
             BookApi book = new();
        

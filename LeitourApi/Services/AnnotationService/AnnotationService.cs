@@ -30,14 +30,14 @@ public class AnnotationService : IAnnotationService{
         await _context.SaveChangesAsync();
     }
 
-    public async Task<Annotation>? GetAnnotation(int id){
+    public async Task<Annotation?> GetAnnotation(int id){
         if(_context.Annotations == null) 
             return null;
         var annotation = await _context.Annotations.Where(annotation => 
             annotation.AnnotationId == id).FirstOrDefaultAsync();
         return annotation;
     }
-    public async Task<List<Annotation>>? GetAllAnnotations(int savedBookId){
+    public async Task<List<Annotation>?> GetAllAnnotations(int savedBookId){
         if(_context.Annotations == null) 
             return null;
         List<Annotation> list = await _context.Annotations.Where(annotation => annotation.SavedBookId == savedBookId).ToListAsync();
@@ -59,11 +59,13 @@ public class AnnotationService : IAnnotationService{
     }
 
     public async Task CreateAnnotation(Annotation annotation){
+        annotation.AnnotationId = 0;
         await _context.Annotations.AddAsync(annotation);
         await _context.SaveChangesAsync();
     }
 
     public async Task SaveBook(SavedBook savedBook){
+        savedBook.SavedId = 0;
         await _context.SavedBooks.AddAsync(savedBook);
         await _context.SaveChangesAsync();
     }

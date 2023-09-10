@@ -6,8 +6,8 @@ public interface IAnnotationService{
 
     public Task SwitchPublic(SavedBook savedBook);
 
-    public Task<Annotation>? GetAnnotation(int id);
-    public Task<List<Annotation>>? GetAllAnnotations(int savedBookId);
+    public Task<Annotation?> GetAnnotation(int id);
+    public Task<List<Annotation>?> GetAllAnnotations(int savedBookId);
     public Task AlterAnnotation(Annotation annotation);
 
     public Task DeleteAnnotation(Annotation annotation);

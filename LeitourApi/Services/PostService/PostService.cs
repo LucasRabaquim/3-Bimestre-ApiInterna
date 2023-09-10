@@ -27,6 +27,7 @@ public class PostService : IPostService
     }
 
     public async Task CreatePost(Post post) {
+        post.PostId = 0;
         _context.Posts.Add(post);
         await _context.SaveChangesAsync();
     }
