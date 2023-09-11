@@ -14,6 +14,7 @@ services:
     ports:
       - "80:80"
     environment:
+      DOCKER_RUNNING: 'true'
       MYSQL_ROOT_USER: root
       MYSQL_ROOT_PASSWORD: 12345678
       MYSQL_DATABASE: dbLeitour

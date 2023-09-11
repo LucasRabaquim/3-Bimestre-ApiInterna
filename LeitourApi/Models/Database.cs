@@ -2,18 +2,14 @@ using MySql.Data.MySqlClient;
 
 public class Database
 {
-    public string sqlConnectionString = "Server=mysql;port=3306;Database=dbLeitour;User Id=root;Password=12345678;";
-    public MySqlConnection Connection()
-    {
-        return new(sqlConnectionString);
-    }
+    //public string sqlConnectionString = "Server=mysql;port=3306;Database=dbLeitour;User Id=root;Password=12345678;";
+    public MySqlConnection Connection(string conn) => new(conn);
 
     public void CreateDb(MySqlConnection conn)
     {
         MySqlCommand createDb = new(script, conn);
         try { createDb.ExecuteNonQuery(); }
         catch { }
-
     }
     
 public string script = @"

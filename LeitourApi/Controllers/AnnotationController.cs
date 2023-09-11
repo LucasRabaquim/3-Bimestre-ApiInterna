@@ -86,7 +86,7 @@ namespace LeitourApi.Controllers
         }
 
 
-        [HttpGet("SavedBooks/annotation/{id}/")]
+        [HttpGet("SavedBooks/annotation/{id}")]
         public async Task<ActionResult<Annotation>> GetAnnotation([FromHeader] string token, int id)
         {
             var annotation = await _AnnotationService.GetAnnotation(id);

@@ -39,16 +39,24 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+
+var docker = Environment.GetEnvironmentVariable("DOCKER_RUNNING");
+Console.WriteLine("teste \n"+docker+"\n teste");
 Database db = new();
 builder.Services.AddDbContext<LeitourContext>(
     options => { 
-        options.UseMySQL(db.sqlConnectionString);
+     if(docker == "true")
+            options.UseMySQL("Server=mysql;port=3306;Database=dbLeitour;User Id=root;Password=12345678;");
+        else
+            options.UseMySQL("Server=localhost;port=3306;Database=dbLeitour;User Id=root;Password=12345678;");
         options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 });
 
-//string script = File.ReadAllText(@"./init.sql");
-
-MySqlConnection conn = db.Connection();
+MySqlConnection conn;
+if(docker == "true")
+    conn = db.Connection("Server=mysql;port=3306;Database=dbLeitour;User Id=root;Password=12345678;");
+else
+    conn = db.Connection("Server=localhost;port=3306;Database=dbLeitour;User Id=root;Password=12345678;");
 
 conn.Open();
 db.CreateDb(conn);
